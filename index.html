@@ -1,14 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Shared Wallpaper - MyOS</title>
+    <title>Shared Wallpaper</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #0a0a0a;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -21,40 +17,23 @@
             -webkit-user-select: none;
             user-select: none;
         }
-        
-        /* Login Screen */
-        #login-screen {
+
+        #welcome-screen {
             text-align: center;
             color: white;
-            padding: 30px;
+            padding: 40px 30px;
         }
-        #login-screen h2 {
-            font-size: 28px;
-            margin-bottom: 10px;
+        #welcome-screen h1 {
+            font-size: 32px;
+            margin-bottom: 5px;
         }
-        #login-screen p {
+        #welcome-screen .subtitle {
             color: rgba(255,255,255,0.5);
-            margin-bottom: 25px;
             font-size: 14px;
+            margin-bottom: 40px;
         }
-        #login-screen input {
-            padding: 16px 25px;
-            font-size: 18px;
-            border-radius: 15px;
-            border: 2px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.08);
-            color: white;
-            text-align: center;
-            margin: 10px;
-            outline: none;
-            width: 250px;
-            transition: border 0.3s;
-        }
-        #login-screen input:focus {
-            border-color: #4f46e5;
-        }
-        #login-screen button {
-            padding: 16px 50px;
+        #welcome-screen button {
+            padding: 16px 40px;
             font-size: 18px;
             border-radius: 15px;
             border: none;
@@ -62,21 +41,91 @@
             color: white;
             cursor: pointer;
             font-weight: bold;
-            margin-top: 10px;
+            width: 100%;
+            max-width: 300px;
             transition: background 0.2s;
         }
-        #login-screen button:active {
-            background: #3730a3;
+        #welcome-screen button:active { background: #3730a3; }
+
+        #connect-screen {
+            display: none;
+            text-align: center;
+            color: white;
+            padding: 40px 30px;
         }
-        #login-error {
-            color: #ff6b6b;
-            margin-top: 15px;
+        #connect-screen h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #connect-screen p {
+            color: rgba(255,255,255,0.5);
             font-size: 13px;
+            margin-bottom: 25px;
+        }
+        #connect-screen input {
+            padding: 16px;
+            font-size: 16px;
+            border-radius: 15px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            color: white;
+            text-align: center;
+            width: 100%;
+            max-width: 280px;
+            outline: none;
+            margin-bottom: 10px;
+        }
+        #connect-screen input:focus { border-color: #4f46e5; }
+        #connect-screen .code-display {
+            background: rgba(255,255,255,0.08);
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        #connect-screen .code-display .label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        #connect-screen .code-display .code {
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 6px;
+            color: #4f46e5;
+        }
+        #connect-screen button {
+            padding: 14px 30px;
+            font-size: 15px;
+            border-radius: 15px;
+            border: none;
+            background: #4f46e5;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 8px;
+            transition: background 0.2s;
+        }
+        #connect-screen button:active { background: #3730a3; }
+        #connect-screen .secondary-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        #connect-error {
+            color: #ff6b6b;
+            font-size: 13px;
+            margin-top: 10px;
             min-height: 20px;
         }
+        #user-display {
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            margin-top: 15px;
+        }
 
-        /* Wallpaper Screen */
-        #wallpaper-screen {
+        #drawing-screen {
             display: none;
             width: 100vw;
             height: 100vh;
@@ -93,8 +142,6 @@
             cursor: crosshair;
             touch-action: none;
         }
-        
-        /* Color Picker */
         #color-picker {
             position: fixed;
             bottom: 35px;
@@ -118,16 +165,12 @@
             border: 3px solid transparent;
             transition: all 0.2s;
         }
-        .color-dot:active {
-            transform: scale(1.3);
-        }
+        .color-dot:active { transform: scale(1.3); }
         .color-dot.active {
             border-color: white;
             transform: scale(1.15);
             box-shadow: 0 0 15px rgba(255,255,255,0.3);
         }
-
-        /* Top buttons */
         #clear-btn {
             position: fixed;
             top: 20px;
@@ -143,9 +186,7 @@
             -webkit-backdrop-filter: blur(20px);
             z-index: 100;
         }
-        #clear-btn:active {
-            background: rgba(255,80,80,0.5);
-        }
+        #clear-btn:active { background: rgba(255,80,80,0.5); }
         #partner-indicator {
             position: fixed;
             top: 20px;
@@ -173,26 +214,55 @@
             z-index: 100;
             pointer-events: none;
         }
+        #back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 18px;
+            background: rgba(20,20,20,0.8);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 13px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 100;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Login Screen -->
-    <div id="login-screen">
-        <h2>🔐 Shared Wallpaper</h2>
-        <p>Enter the same room code on both devices</p>
-        <input type="text" id="room-input" placeholder="e.g. sunset-42" maxlength="30" autocomplete="off">
-        <br>
-        <button id="enter-btn">Enter Room</button>
-        <p id="login-error"></p>
+    <div id="welcome-screen">
+        <h1>🎨 Shared Wallpaper</h1>
+        <p class="subtitle">Draw together. In real time. Just you and one other person.</p>
+        <button id="google-login-btn">Sign in with Google</button>
     </div>
 
-    <!-- Wallpaper Screen -->
-    <div id="wallpaper-screen">
+    <div id="connect-screen">
+        <h2>👋 Connect With Someone</h2>
+        <p>Share your code or enter theirs</p>
+        <div class="code-display">
+            <div class="label">Your Code</div>
+            <div class="code" id="my-code">----</div>
+        </div>
+        <input type="text" id="partner-code-input" placeholder="Enter their code" maxlength="6" autocomplete="off">
+        <br>
+        <button onclick="connectWithPartner()">Connect</button>
+        <br>
+        <button class="secondary-btn" onclick="copyCode()">📋 Copy My Code</button>
+        <button class="secondary-btn" onclick="signOut()">Sign Out</button>
+        <p id="connect-error"></p>
+        <p id="user-display"></p>
+    </div>
+
+    <div id="drawing-screen">
         <canvas id="wallpaper"></canvas>
-        <div id="partner-indicator">👤 Just you</div>
+        <div id="partner-indicator">👤 Connected</div>
         <div id="status">🟢 Ready</div>
         <button id="clear-btn">🗑 Clear</button>
+        <button id="back-btn" onclick="goBack()">← Back</button>
         <div id="color-picker">
             <div class="color-dot active" style="background:#ffffff;" data-color="#ffffff"></div>
             <div class="color-dot" style="background:#ff6b6b;" data-color="#ff6b6b"></div>
@@ -204,324 +274,338 @@
         </div>
     </div>
 
-    <script>
-        (function() {
-            // ============================================
-            // CONFIG
-            // ============================================
-            const FIREBASE_URL = "https://myos-8e487-default-rtdb.asia-southeast1.firebasedatabase.app";
-            
-            // ============================================
-            // STATE
-            // ============================================
-            let roomCode = "";
-            let currentColor = "#ffffff";
-            let isDrawing = false;
-            let canvas, ctx;
-            let lastX = 0, lastY = 0;
-            let isReceiving = false; // Prevent loops when receiving data
-            
-            console.log("🚀 Shared Wallpaper starting...");
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-            // ============================================
-            // DOM ELEMENTS
-            // ============================================
-            const loginScreen = document.getElementById('login-screen');
-            const wallpaperScreen = document.getElementById('wallpaper-screen');
-            const roomInput = document.getElementById('room-input');
-            const enterBtn = document.getElementById('enter-btn');
-            const loginError = document.getElementById('login-error');
-            const partnerIndicator = document.getElementById('partner-indicator');
-            const statusEl = document.getElementById('status');
-            const clearBtn = document.getElementById('clear-btn');
-            
-            canvas = document.getElementById('wallpaper');
-            ctx = canvas.getContext('2d');
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAr_Fcr_IbMl9syK4zxep3ar9OEHHBppT8",
+            authDomain: "myos-8e487.firebaseapp.com",
+            databaseURL: "https://myos-8e487-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "myos-8e487",
+            storageBucket: "myos-8e487.firebasestorage.app",
+            messagingSenderId: "1020781755391",
+            appId: "1:1020781755391:web:2bb6987486feb02b2ec5ca"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const connectScreen = document.getElementById('connect-screen');
+        const drawingScreen = document.getElementById('drawing-screen');
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        const connectError = document.getElementById('connect-error');
+        const userDisplay = document.getElementById('user-display');
+        const partnerIndicator = document.getElementById('partner-indicator');
+        const statusEl = document.getElementById('status');
+        const clearBtn = document.getElementById('clear-btn');
+        const backBtn = document.getElementById('back-btn');
+
+        let currentUser = null;
+        let myCode = "";
+        let partnerCode = "";
+        let roomId = "";
+        let currentColor = "#ffffff";
+        let isDrawing = false;
+        let canvas, ctx;
+        let lastX = 0, lastY = 0;
+        let lastTimestamp = 0;
+
+        canvas = document.getElementById('wallpaper');
+        ctx = canvas.getContext('2d');
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 3;
+
+        function resizeCanvas() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            ctx.putImageData(imageData, 0, 0);
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             ctx.lineWidth = 3;
+        }
+        window.addEventListener('resize', resizeCanvas);
 
-            // ============================================
-            // CANVAS SETUP
-            // ============================================
-            function resizeCanvas() {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                ctx.putImageData(imageData, 0, 0);
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.lineWidth = 3;
+        googleLoginBtn.addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(err => {
+                console.error("Login error:", err);
+                alert("Login failed. Try again.");
+            });
+        });
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                welcomeScreen.style.display = 'none';
+                connectScreen.style.display = 'block';
+                userDisplay.textContent = `Signed in as: ${user.displayName}`;
+                setupUser();
+            } else {
+                currentUser = null;
+                welcomeScreen.style.display = 'block';
+                connectScreen.style.display = 'none';
+                drawingScreen.style.display = 'none';
+            }
+        });
+
+        function setupUser() {
+            myCode = currentUser.uid.substring(0, 6).toUpperCase();
+            document.getElementById('my-code').textContent = myCode;
+            
+            database.ref('users/' + currentUser.uid).set({
+                name: currentUser.displayName,
+                code: myCode,
+                lastSeen: Date.now()
+            });
+
+            database.ref('users/' + currentUser.uid + '/connectedTo').on('value', snapshot => {
+                const data = snapshot.val();
+                if (data && data.partnerId) {
+                    partnerCode = data.partnerCode;
+                    roomId = data.roomId;
+                    openDrawingScreen();
+                }
+            });
+        }
+
+        function connectWithPartner() {
+            const inputCode = document.getElementById('partner-code-input').value.trim().toUpperCase();
+            
+            if (!inputCode) {
+                connectError.textContent = "Enter a code";
+                return;
             }
             
-            window.addEventListener('resize', resizeCanvas);
+            if (inputCode === myCode) {
+                connectError.textContent = "That's your own code";
+                return;
+            }
+            
+            connectError.textContent = "Looking for user...";
+            
+            database.ref('users').orderByChild('code').equalTo(inputCode).once('value')
+                .then(snapshot => {
+                    if (snapshot.exists()) {
+                        const partnerData = snapshot.val();
+                        const partnerId = Object.keys(partnerData)[0];
+                        
+                        const ids = [currentUser.uid, partnerId].sort();
+                        roomId = ids[0] + '_' + ids[1];
+                        partnerCode = inputCode;
+                        
+                        const updates = {};
+                        updates['users/' + currentUser.uid + '/connectedTo'] = {
+                            partnerId: partnerId,
+                            partnerCode: partnerCode,
+                            roomId: roomId
+                        };
+                        updates['users/' + partnerId + '/connectedTo'] = {
+                            partnerId: currentUser.uid,
+                            partnerCode: myCode,
+                            roomId: roomId
+                        };
+                        
+                        return database.ref().update(updates);
+                    } else {
+                        connectError.textContent = "Code not found. Ask them to share their code.";
+                        throw new Error("Not found");
+                    }
+                })
+                .then(() => {
+                    connectError.textContent = "";
+                    openDrawingScreen();
+                })
+                .catch(err => {
+                    if (err.message !== "Not found") {
+                        connectError.textContent = "Connection failed. Try again.";
+                    }
+                });
+        }
+        window.connectWithPartner = connectWithPartner;
+
+        function copyCode() {
+            navigator.clipboard.writeText(myCode).then(() => {
+                connectError.textContent = "Code copied!";
+                setTimeout(() => { connectError.textContent = ""; }, 2000);
+            }).catch(() => {
+                connectError.textContent = "Couldn't copy. Your code: " + myCode;
+            });
+        }
+        window.copyCode = copyCode;
+
+        function signOut() {
+            if (currentUser && roomId) {
+                database.ref('users/' + currentUser.uid + '/connectedTo').remove();
+            }
+            auth.signOut();
+        }
+        window.signOut = signOut;
+
+        function openDrawingScreen() {
+            connectScreen.style.display = 'none';
+            drawingScreen.style.display = 'block';
             resizeCanvas();
+            partnerIndicator.textContent = "👤 Connected";
+            statusEl.textContent = "🟢 Ready";
+            lastTimestamp = 0;
+            
+            loadCanvas();
+            startListening();
+        }
 
-            // ============================================
-            // JOIN ROOM
-            // ============================================
-            function joinRoom() {
-                const code = roomInput.value.trim();
-                
-                if (!code) {
-                    loginError.textContent = "Please enter a room code";
-                    return;
-                }
-                
-                if (code.length < 3) {
-                    loginError.textContent = "Room code must be at least 3 characters";
-                    return;
-                }
-                
-                roomCode = code;
-                loginScreen.style.display = 'none';
-                wallpaperScreen.style.display = 'block';
-                loginError.textContent = "";
-                
-                resizeCanvas();
-                
-                partnerIndicator.textContent = "👤 Room: " + roomCode;
-                statusEl.textContent = "🟡 Loading...";
-                
-                // Load any existing drawing
-                loadCanvas();
-                
-                // Start listening for partner
-                startListening();
-                
-                console.log("✅ Joined room:", roomCode);
+        function goBack() {
+            drawingScreen.style.display = 'none';
+            connectScreen.style.display = 'block';
+            
+            if (currentUser) {
+                database.ref('users/' + currentUser.uid + '/connectedTo').remove();
             }
+            partnerCode = "";
+            roomId = "";
+        }
+        window.goBack = goBack;
 
-            // ============================================
-            // GET CORRECTED POSITION
-            // ============================================
-            function getPos(e) {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-                return {
-                    x: (e.clientX - rect.left) * scaleX,
-                    y: (e.clientY - rect.top) * scaleY
-                };
-            }
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
 
-            // ============================================
-            // DRAWING
-            // ============================================
-            function startDraw(e) {
-                isDrawing = true;
-                const pos = getPos(e);
-                lastX = pos.x;
-                lastY = pos.y;
-                
-                // Draw a dot where they clicked
-                ctx.fillStyle = currentColor;
-                ctx.beginPath();
-                ctx.arc(pos.x, pos.y, 1.5, 0, Math.PI * 2);
-                ctx.fill();
-            }
+        function startDraw(e) {
+            isDrawing = true;
+            const pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            ctx.fillStyle = currentColor;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
-            function draw(e) {
-                if (!isDrawing) return;
-                
-                const pos = getPos(e);
-                
-                // Draw line segment locally
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.strokeStyle = currentColor;
-                ctx.stroke();
-                
-                lastX = pos.x;
-                lastY = pos.y;
-            }
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.strokeStyle = currentColor;
+            ctx.stroke();
+            lastX = pos.x;
+            lastY = pos.y;
+        }
 
-            function stopDraw() {
-                if (!isDrawing) return;
-                isDrawing = false;
-                
-                // Save entire canvas to Firebase
-                saveCanvas();
-                
-                statusEl.textContent = "🟢 Saved";
-                setTimeout(() => {
-                    statusEl.textContent = "🟢 Ready";
-                }, 800);
-            }
+        function stopDraw() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            saveCanvas();
+            statusEl.textContent = "🟢 Saved";
+            setTimeout(() => { statusEl.textContent = "🟢 Ready"; }, 800);
+        }
 
-            // Mouse events
-            canvas.addEventListener('mousedown', startDraw);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDraw);
-            canvas.addEventListener('mouseleave', stopDraw);
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDraw);
+        canvas.addEventListener('mouseleave', stopDraw);
 
-            // Touch events
-            canvas.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                startDraw({ clientX: touch.clientX, clientY: touch.clientY });
-            }, { passive: false });
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            startDraw({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+        }, { passive: false });
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            draw({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+        }, { passive: false });
+        canvas.addEventListener('touchend', e => {
+            e.preventDefault();
+            stopDraw();
+        }, { passive: false });
 
-            canvas.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                draw({ clientX: touch.clientX, clientY: touch.clientY });
-            }, { passive: false });
-
-            canvas.addEventListener('touchend', function(e) {
-                e.preventDefault();
-                stopDraw();
-            }, { passive: false });
-
-            // ============================================
-            // COLOR PICKER
-            // ============================================
-            document.querySelectorAll('.color-dot').forEach(dot => {
-                dot.addEventListener('click', function() {
-                    currentColor = this.dataset.color;
-                    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-                    this.classList.add('active');
-                });
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.addEventListener('click', function() {
+                currentColor = this.dataset.color;
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                this.classList.add('active');
             });
+        });
 
-            // ============================================
-            // CLEAR
-            // ============================================
-            clearBtn.addEventListener('click', function() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (roomCode) {
-                    fetch(`${FIREBASE_URL}/rooms/${roomCode}/canvas.json`, {
-                        method: 'PUT',
-                        body: JSON.stringify({ 
-                            imageData: null, 
-                            action: 'clear',
-                            timestamp: Date.now() 
-                        })
-                    });
-                }
-                statusEl.textContent = "🗑 Cleared";
-                setTimeout(() => {
-                    statusEl.textContent = "🟢 Ready";
-                }, 1000);
-            });
-
-            // ============================================
-            // SAVE CANVAS TO FIREBASE
-            // ============================================
-            function saveCanvas() {
-                if (!roomCode) return;
-                
-                const imageData = canvas.toDataURL('image/png');
-                const url = `${FIREBASE_URL}/rooms/${roomCode}/canvas.json`;
-                
-                fetch(url, {
-                    method: 'PUT',
-                    body: JSON.stringify({ 
-                        imageData: imageData,
-                        timestamp: Date.now() 
-                    })
-                }).catch(err => {
-                    console.error("Save error:", err);
+        clearBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (roomId) {
+                database.ref('rooms/' + roomId + '/canvas').set({
+                    imageData: null,
+                    action: 'clear',
+                    timestamp: Date.now()
                 });
             }
+            statusEl.textContent = "🗑 Cleared";
+            setTimeout(() => { statusEl.textContent = "🟢 Ready"; }, 1000);
+        });
 
-            // ============================================
-            // LOAD CANVAS FROM FIREBASE
-            // ============================================
-            async function loadCanvas() {
-                if (!roomCode) return;
+        function saveCanvas() {
+            if (!roomId) return;
+            const imageData = canvas.toDataURL('image/png');
+            database.ref('rooms/' + roomId + '/canvas').set({
+                imageData: imageData,
+                timestamp: Date.now()
+            });
+        }
+
+        async function loadCanvas() {
+            if (!roomId) return;
+            database.ref('rooms/' + roomId + '/canvas').once('value').then(snapshot => {
+                const data = snapshot.val();
+                if (data && data.imageData && data.action !== 'clear') {
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = data.imageData;
+                }
+            });
+        }
+
+        function startListening() {
+            database.ref('rooms/' + roomId + '/canvas').on('value', snapshot => {
+                const data = snapshot.val();
+                if (!data || isDrawing) return;
                 
-                const url = `${FIREBASE_URL}/rooms/${roomCode}/canvas.json`;
-                
-                try {
-                    const response = await fetch(url);
-                    const data = await response.json();
+                if (data.timestamp && data.timestamp > lastTimestamp) {
+                    lastTimestamp = data.timestamp;
                     
-                    if (data && data.imageData && data.action !== 'clear') {
-                        isReceiving = true;
+                    if (data.action === 'clear') {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        partnerIndicator.textContent = "🗑 Cleared";
+                        setTimeout(() => { partnerIndicator.textContent = "👤 Connected"; }, 2000);
+                    } else if (data.imageData) {
                         const img = new Image();
-                        img.onload = function() {
+                        img.onload = () => {
                             ctx.clearRect(0, 0, canvas.width, canvas.height);
                             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            statusEl.textContent = "🟢 Canvas loaded";
+                            partnerIndicator.textContent = "✏️ Partner updated";
+                            statusEl.textContent = "🟢 Synced";
                             setTimeout(() => {
+                                partnerIndicator.textContent = "👤 Connected";
                                 statusEl.textContent = "🟢 Ready";
-                            }, 1000);
-                            isReceiving = false;
+                            }, 1500);
                         };
                         img.src = data.imageData;
-                    } else {
-                        statusEl.textContent = "🟢 Fresh canvas";
-                        setTimeout(() => {
-                            statusEl.textContent = "🟢 Ready";
-                        }, 1000);
                     }
-                } catch (err) {
-                    statusEl.textContent = "🟢 Ready";
-                }
-            }
-
-            // ============================================
-            // LISTEN FOR PARTNER UPDATES
-            // ============================================
-            let lastTimestamp = 0;
-
-            function startListening() {
-                setInterval(async () => {
-                    if (!roomCode || isDrawing) return; // Don't update while local user is drawing
-                    
-                    const url = `${FIREBASE_URL}/rooms/${roomCode}/canvas.json`;
-                    
-                    try {
-                        const response = await fetch(url);
-                        const data = await response.json();
-                        
-                        if (data && data.timestamp && data.timestamp > lastTimestamp) {
-                            lastTimestamp = data.timestamp;
-                            
-                            if (data.action === 'clear') {
-                                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                                partnerIndicator.textContent = "🗑 Partner cleared";
-                                setTimeout(() => {
-                                    partnerIndicator.textContent = "👤 Room: " + roomCode;
-                                }, 2000);
-                            } else if (data.imageData) {
-                                isReceiving = true;
-                                const img = new Image();
-                                img.onload = function() {
-                                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                                    partnerIndicator.textContent = "✏️ Partner updated";
-                                    statusEl.textContent = "🟢 Synced";
-                                    setTimeout(() => {
-                                        partnerIndicator.textContent = "👤 Room: " + roomCode;
-                                        statusEl.textContent = "🟢 Ready";
-                                    }, 1500);
-                                    isReceiving = false;
-                                };
-                                img.src = data.imageData;
-                            }
-                        }
-                    } catch (err) {
-                        // Silently retry on next interval
-                    }
-                }, 500); // Check every 500ms
-            }
-
-            // ============================================
-            // ENTER BUTTON & KEYBOARD
-            // ============================================
-            enterBtn.addEventListener('click', joinRoom);
-            
-            roomInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    joinRoom();
                 }
             });
+        }
 
-            console.log("✅ Shared Wallpaper ready");
-        })();
+        console.log("✅ Shared Wallpaper ready");
     </script>
 </body>
 </html>
