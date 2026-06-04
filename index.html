@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Carrot">
+    <meta name="theme-color" content="#075e54">
+    <title>Carrot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --wa-dark: #075e54;
+            --wa-green: #128c7e;
+            --wa-light: #25d366;
+            --wa-bg: #0a0a0a;
+            --wa-surface: #111b21;
+            --wa-surface2: #202c33;
+            --wa-surface3: #2a3942;
+            --wa-border: rgba(255,255,255,0.06);
+            --wa-text: #e9edef;
+            --wa-text2: #8696a0;
+            --wa-text3: #667781;
+            --wa-bubble-in: #202c33;
+            --wa-bubble-out: #005c4b;
+            --wa-danger: #ef4444;
+            --wa-blue: #53bdeb;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: #000;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            height: 100dvh;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            color: var(--wa-text);
+            display: flex;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+        .app {
+            width: 100%;
+            max-width: 430px;
+            height: 100dvh;
+            background: var(--wa-bg);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        @media (min-width: 431px) {
+            .app { border-left: 0.5px solid var(--wa-border); border-right: 0.5px solid var(--wa-border); }
+        }
+
+        .screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--wa-surface);
+            transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+            will-change: transform;
+        }
+        .screen.hidden { transform: translateX(105%); pointer-events: none; }
+        #chat-screen { z-index: 20; transform: translateX(105%); }
+        #chat-screen.active { transform: translateX(0); }
+        #settings-screen { z-index: 25; transform: translateX(105%); }
+        #settings-screen.active { transform: translateX(0); }
+
+        /* WhatsApp Header */
+        .wa-header {
+            background: var(--wa-dark);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 56px;
+            z-index: 10;
+        }
+        .wa-header-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: -0.2px;
+        }
+        .wa-header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .wa-header-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 6px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.9;
+            font-family: 'Inter', sans-serif;
+        }
+        .wa-header-btn:active { opacity: 0.6; }
+
+        /* WhatsApp Tabs */
+        .wa-tabs {
+            background: var(--wa-dark);
+            display: flex;
+            border-bottom: 2px solid rgba(255,255,255,0.08);
+        }
+        .wa-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.2s;
+            position: relative;
+        }
+        .wa-tab.active {
+            color: #fff;
+        }
+        .wa-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 2px;
+            background: #fff;
+            border-radius: 1px;
+        }
+
+        /* Chat List */
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--wa-surface);
+        }
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .chat-item:active {
+            background: var(--wa-surface2);
+        }
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--wa-surface3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--wa-text);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .chat-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .chat-info {
+            flex: 1;
+            min-width: 0;
+            border-bottom: 0.5px solid var(--wa-border);
+            padding-bottom: 12px;
+        }
+        .chat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+        .chat-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--wa-text);
+        }
+        .chat-time {
+            font-size: 11px;
+            color: var(--wa-text3);
+        }
+        .chat-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-preview {
+            font-size: 13px;
+            color: var(--wa-text2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        .unread-badge {
+            background: var(--wa-light);
+            color: #000;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+        }
+
+        /* FAB */
+        .fab {
+            position: absolute;
+            bottom: 20px;
+            right: 16px;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: var(--wa-light);
+            border: none;
+            cursor: pointer;
+            color: #000;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+            z-index: 15;
+        }
+        .fab:active {
+            transform: scale(0.92);
+            background: #20bd5a;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            padding: 8px 12px;
+            background: var(--wa-surface);
+        }
+        .search-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--wa-surface2);
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+        .search-input-wrap input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--wa-text);
+            font-size: 14px;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .search-input-wrap input::placeholder {
+            color: var(--wa-text3);
+        }
+        .search-results {
+            position: absolute;
+            top: 52px;
+            left: 12px;
+            right: 12px;
+            background: var(--wa-surface2);
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 30;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .search-results.show { display: block; }
+        .search-item {
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .search-item:active { background: var(--wa-surface3); }
+
+        /* Chat Screen */
+        .chat-header {
+            background: var(--wa-dark);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 56px;
+            z-index: 15;
+        }
+        .chat-back {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 22px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+        }
+        .chat-back:active { opacity: 0.6; }
+        .chat-partner {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .chat-partner-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--wa-surface3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            overflow: hidden;
+        }
+        .chat-partner-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .chat-partner-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+        }
+        .chat-partner-status {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+        .chat-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Messages */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background: var(--wa-surface);
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect fill="%23111b21" width="300" height="300"/><g opacity="0.04"><circle cx="50" cy="50" r="40" fill="none" stroke="%23ffffff" stroke-width="0.5"/><circle cx="150" cy="100" r="60" fill="none" stroke="%23ffffff" stroke-width="0.3"/><circle cx="250" cy="200" r="45" fill="none" stroke="%23ffffff" stroke-width="0.4"/><circle cx="80" cy="220" r="30" fill="none" stroke="%23ffffff" stroke-width="0.3"/></g></svg>');
+        }
+        .date-divider {
+            text-align: center;
+            padding: 8px 0;
+        }
+        .date-divider span {
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        .msg-row {
+            display: flex;
+            margin-bottom: 3px;
+        }
+        .msg-row.outgoing {
+            justify-content: flex-end;
+        }
+        .msg-bubble {
+            max-width: 72%;
+            padding: 6px 8px 6px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.45;
+            word-break: break-word;
+            position: relative;
+            animation: msgIn 0.25s ease-out;
+        }
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .msg-bubble.incoming {
+            background: var(--wa-bubble-in);
+            color: var(--wa-text);
+            border-top-left-radius: 0;
+        }
+        .msg-bubble.outgoing {
+            background: var(--wa-bubble-out);
+            color: #fff;
+            border-top-right-radius: 0;
+        }
+        .msg-image {
+            max-width: 220px;
+            border-radius: 6px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .msg-footer {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            float: right;
+            margin-left: 8px;
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 1px;
+        }
+        .msg-bubble.outgoing .msg-footer {
+            color: rgba(255,255,255,0.7);
+        }
+        .msg-bubble.incoming .msg-footer {
+            color: var(--wa-text3);
+        }
+        .voice-msg {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            min-width: 140px;
+        }
+        .voice-play-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .msg-bubble.outgoing .voice-play-btn {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+        .msg-bubble.incoming .voice-play-btn {
+            background: rgba(255,255,255,0.1);
+            color: var(--wa-text);
+        }
+        .voice-track {
+            flex: 1;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.15);
+            overflow: hidden;
+        }
+        .msg-bubble.incoming .voice-track {
+            background: rgba(255,255,255,0.08);
+        }
+        .voice-progress {
+            height: 100%;
+            border-radius: 3px;
+            background: #fff;
+            width: 0%;
+            transition: width 0.15s linear;
+        }
+        .msg-bubble.incoming .voice-progress {
+            background: var(--wa-text);
+        }
+        .voice-duration {
+            font-size: 11px;
+            opacity: 0.7;
+            min-width: 28px;
+        }
+
+        /* Composer */
+        .composer {
+            background: var(--wa-surface2);
+            padding: 8px 10px 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .composer-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            background: none;
+            color: var(--wa-text2);
+        }
+        .composer-btn:active {
+            background: rgba(255,255,255,0.08);
+        }
+        .composer-input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 24px;
+            border: none;
+            background: var(--wa-surface3);
+            color: var(--wa-text);
+            font-size: 14px;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .composer-input::placeholder {
+            color: var(--wa-text3);
+        }
+        .composer-send {
+            background: var(--wa-light);
+            color: #000;
+            font-weight: 600;
+        }
+        .composer-send:active {
+            background: #20bd5a;
+        }
+        .composer-recording {
+            background: var(--wa-danger) !important;
+            animation: recPulse 1.2s infinite;
+        }
+        @keyframes recPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+            50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+        }
+
+        /* Auth Screen */
+        #auth-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 28px;
+            background: var(--wa-surface);
+            gap: 24px;
+        }
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .auth-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #auth-screen h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--wa-text);
+        }
+        #auth-screen p {
+            color: var(--wa-text2);
+            font-size: 14px;
+        }
+        .btn-google {
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: none;
+            background: #fff;
+            color: #1a1a1a;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s;
+        }
+        .btn-google:active {
+            transform: scale(0.96);
+            background: #f0f0f0;
+        }
+        .btn-google svg {
+            width: 20px;
+            height: 20px;
+        }
+        .auth-error {
+            color: var(--wa-danger);
+            font-size: 12px;
+            min-height: 18px;
+        }
+
+        /* Username */
+        #username-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 28px;
+            background: var(--wa-surface);
+            text-align: center;
+            gap: 16px;
+        }
+        #username-screen h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        #username-screen p {
+            color: var(--wa-text3);
+            font-size: 13px;
+        }
+        .wa-input {
+            width: 100%;
+            max-width: 280px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1.5px solid var(--wa-border);
+            background: var(--wa-surface2);
+            color: var(--wa-text);
+            font-size: 16px;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .wa-input:focus {
+            border-color: var(--wa-light);
+            background: var(--wa-surface3);
+        }
+        .wa-input::placeholder {
+            color: var(--wa-text3);
+        }
+        .btn-wa {
+            width: 100%;
+            max-width: 280px;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            background: var(--wa-light);
+            color: #000;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.15s;
+        }
+        .btn-wa:active {
+            background: #20bd5a;
+            transform: scale(0.96);
+        }
+        .btn-wa:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Settings */
+        .settings-content {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--wa-surface);
+            padding: 16px;
+        }
+        .settings-section {
+            margin-bottom: 20px;
+        }
+        .settings-section h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--wa-text3);
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: var(--wa-surface2);
+            border-radius: 8px;
+            margin-bottom: 2px;
+            cursor: pointer;
+        }
+        .settings-item:active {
+            background: var(--wa-surface3);
+        }
+        .settings-item-label {
+            font-size: 14px;
+            color: var(--wa-text);
+        }
+        .settings-item-value {
+            font-size: 13px;
+            color: var(--wa-text2);
+        }
+        .settings-item-danger {
+            color: var(--wa-danger) !important;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--wa-surface3);
+            color: var(--wa-text);
+            font-size: 12px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--wa-surface3); border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <!-- Auth -->
+    <div class="screen" id="auth-screen" style="position:absolute;top:0;left:0;right:0;bottom:0;transform:none;">
+        <div class="auth-logo"><img src="https://i.ibb.co/C390CT2F/icon.png" alt="C"></div>
+        <h1>Carrot</h1>
+        <p>Simple. Private. Messaging.</p>
+        <button class="btn-google" onclick="signIn()">
+            <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Continue with Google
+        </button>
+        <p class="auth-error" id="auth-err"></p>
+    </div>
+
+    <!-- Username -->
+    <div class="screen hidden" id="username-screen" style="position:absolute;top:0;left:0;right:0;bottom:0;">
+        <h2>Choose your username</h2>
+        <p>This is how people find you on Carrot.</p>
+        <input class="wa-input" id="uname-inp" placeholder="username" maxlength="20" oninput="checkUname()">
+        <p style="font-size:11px;color:var(--wa-text3)">Letters, numbers, underscores</p>
+        <button class="btn-wa" id="save-uname" disabled onclick="saveUname()">Continue</button>
+        <p class="auth-error" id="uname-err"></p>
+    </div>
+
+    <!-- Main -->
+    <div class="screen hidden" id="main-screen" style="position:absolute;top:0;left:0;right:0;bottom:0;">
+        <div class="wa-header">
+            <div class="wa-header-title">Carrot</div>
+            <div class="wa-header-actions">
+                <button class="wa-header-btn" onclick="openSettings()">⚙</button>
+            </div>
+        </div>
+        <div style="position:relative;">
+            <div class="search-bar">
+                <div class="search-input-wrap">
+                    <span style="color:var(--wa-text3);font-size:14px;">🔍</span>
+                    <input type="text" id="search-inp" placeholder="Search or start new chat" oninput="searchUsers()" autocomplete="off">
+                </div>
+            </div>
+            <div class="search-results" id="search-res"></div>
+        </div>
+        <div class="chat-list" id="chat-list">
+            <div style="text-align:center;padding:60px 20px;color:var(--wa-text3);font-size:14px;">Search for someone to chat</div>
+        </div>
+        <button class="fab" onclick="document.getElementById('search-inp').focus()">+</button>
+    </div>
+
+    <!-- Chat -->
+    <div class="screen" id="chat-screen">
+        <div class="chat-header">
+            <button class="chat-back" onclick="closeChat()">←</button>
+            <div class="chat-partner" onclick="openProfile()">
+                <div class="chat-partner-avatar" id="chat-avatar">?</div>
+                <div>
+                    <div class="chat-partner-name" id="chat-pname">User</div>
+                    <div class="chat-partner-status" id="chat-pstatus">Offline</div>
+                </div>
+            </div>
+            <div class="chat-actions">
+                <button class="wa-header-btn" onclick="startCall()">📞</button>
+                <button class="wa-header-btn" onclick="startVideoCall()">📹</button>
+            </div>
+        </div>
+        <div class="messages-area" id="msg-area"></div>
+        <div class="composer">
+            <button class="composer-btn" onclick="document.getElementById('file-inp').click()">📎</button>
+            <input type="file" id="file-inp" accept="image/*" onchange="sendMedia(this)" style="display:none;">
+            <input class="composer-input" id="msg-inp" placeholder="Message" onkeypress="if(event.key==='Enter')sendMsg()" autocomplete="off">
+            <button class="composer-btn" id="voice-btn" onmousedown="startRec()" onmouseup="stopRec()" onmouseleave="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()">🎤</button>
+            <button class="composer-btn composer-send" onclick="sendMsg()">➤</button>
+        </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="screen" id="settings-screen">
+        <div class="wa-header">
+            <button class="chat-back" onclick="closeSettings()">←</button>
+            <div class="wa-header-title">Settings</div>
+            <div></div>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section">
+                <h3>Profile</h3>
+                <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--wa-surface2);border-radius:8px;margin-bottom:8px;">
+                    <div class="chat-partner-avatar" id="settings-pfp" style="width:56px;height:56px;font-size:22px;">?</div>
+                    <div>
+                        <div style="font-weight:500;margin-bottom:4px;">Profile Photo</div>
+                        <button class="btn-wa" style="padding:6px 14px;font-size:12px;max-width:100px;" onclick="document.getElementById('pfp-inp').click()">Change</button>
+                        <input type="file" id="pfp-inp" accept="image/*" onchange="uploadPfp(this)" style="display:none;">
+                    </div>
+                </div>
+                <div class="settings-item"><span class="settings-item-label">Username</span><span class="settings-item-value" id="set-uname">@user</span></div>
+                <div class="settings-item"><span class="settings-item-label">Email</span><span class="settings-item-value" id="set-email">email</span></div>
+            </div>
+            <div class="settings-section">
+                <h3>Account</h3>
+                <div class="settings-item" onclick="logout()"><span class="settings-item-label settings-item-danger">Sign Out</span></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAr_Fcr_IbMl9syK4zxep3ar9OEHHBppT8",authDomain:"myos-8e487.firebaseapp.com",databaseURL:"https://myos-8e487-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"myos-8e487",storageBucket:"myos-8e487.firebasestorage.app",messagingSenderId:"1020781755391",appId:"1:1020781755391:web:2bb6987486feb02b2ec5ca"});
+const auth=firebase.auth(),db=firebase.database();
+const $=id=>document.getElementById(id);
+let me=null,uname="",chatId=null,partnerId=null,msgsRef=null,recorder=null,chunks=[],recording=!1,curAudio=null;
+
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2000);}
+function showScr(s){['auth-screen','username-screen','main-screen'].forEach(x=>$(x)?.classList.add('hidden'));$(s)?.classList.remove('hidden');}
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function fmtTime(ts){const d=Date.now()-ts;if(d<864e5)return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});if(d<6048e5)return new Date(ts).toLocaleDateString([],{weekday:'short'});return new Date(ts).toLocaleDateString([],{month:'short',day:'numeric'});}
+
+// Auth
+window.signIn=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(()=>$('auth-err').textContent='Sign in failed');
+auth.onAuthStateChanged(async u=>{if(u){me=u;const s=await db.ref('users/'+u.uid+'/username').once('value');if(s.exists()){uname=s.val();enterMain();}else{showScr('username-screen');}}else{me=null;uname='';showScr('auth-screen');if(chatId)closeChat();}});
+window.checkUname=()=>{$('save-uname').disabled=!/^[a-z0-9_]{3,}$/.test($('uname-inp').value.trim().toLowerCase());};
+window.saveUname=async()=>{const n=$('uname-inp').value.trim().toLowerCase();if(!/^[a-z0-9_]{3,}$/.test(n))return;if((await db.ref('usernames/'+n).once('value')).exists()){$('uname-err').textContent='Taken.';return;}await db.ref().update({['users/'+me.uid+'/username']:n,['users/'+me.uid+'/email']:me.email,['usernames/'+n]:me.uid});uname=n;enterMain();};
+
+function enterMain(){
+    $('set-uname').textContent='@'+uname;$('set-email').textContent=me.email;
+    db.ref('users/'+me.uid+'/online').set(!0);db.ref('users/'+me.uid+'/online').onDisconnect().set(!1);
+    loadPfp();loadChats();showScr('main-screen');
+}
+function loadPfp(){db.ref('users/'+me.uid+'/pfp').once('value').then(s=>{if(s.val()){$('settings-pfp').innerHTML=`<img src="${s.val()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}else{$('settings-pfp').textContent=uname[0].toUpperCase();}});}
+window.uploadPfp=function(i){const f=i.files[0];if(!f||f.size>5e6){toast('Max 5MB');return;}const r=new FileReader();r.onload=e=>{db.ref('users/'+me.uid+'/pfp').set(e.target.result);$('settings-pfp').innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;toast('Photo updated');};r.readAsDataURL(f);i.value='';};
+window.logout=()=>{db.ref('users/'+me.uid+'/online').set(!1);auth.signOut();};
+
+// Search
+window.searchUsers=async()=>{const q=$('search-inp').value.trim().toLowerCase();if(q.length<2){$('search-res').classList.remove('show');return;}const s=await db.ref('usernames').orderByKey().startAt(q).limitToFirst(8).once('value');const r=[];s.forEach(c=>{if(c.key.startsWith(q)&&c.key!==uname)r.push(c.key);});$('search-res').innerHTML=r.length?r.map(n=>`<div class="search-item" onclick="startChat('${n}')"><div class="chat-avatar" style="width:36px;height:36px;font-size:13px;">${n[0].toUpperCase()}</div><div><div style="font-weight:500;">${n}</div><div style="font-size:11px;color:var(--wa-text3);">@${n}</div></div></div>`).join(''):'<div style="padding:14px;text-align:center;color:var(--wa-text3);font-size:13px;">No users found</div>';$('search-res').classList.add('show');};
+document.addEventListener('click',e=>{if(!e.target.closest('.search-bar')&&!e.target.closest('.search-results'))$('search-res').classList.remove('show');});
+
+// Chat List
+function loadChats(){db.ref('users/'+me.uid+'/chats').on('value',async s=>{const d=s.val();if(!d){$('chat-list').innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--wa-text3);font-size:14px;">Search for someone to chat</div>';return;}const items=await Promise.all(Object.entries(d).sort((a,b)=>(b[1].lastTimestamp||0)-(a[1].lastTimestamp||0)).map(async([cid,cd])=>{const u=await db.ref('users/'+cd.with).once('value');const ud=u.val();return{cid,...cd,name:ud.username,online:ud.online,pfp:ud.pfp,typing:ud.typing};}));$('chat-list').innerHTML=items.map(i=>`<div class="chat-item" onclick="openChat('${i.cid}','${i.name}','${i.with}')"><div class="chat-avatar">${i.pfp?`<img src="${i.pfp}">`:i.name[0].toUpperCase()}</div><div class="chat-info"><div class="chat-top"><span class="chat-name">${i.name}</span><span class="chat-time">${i.lastTimestamp?fmtTime(i.lastTimestamp):''}</span></div><div class="chat-bottom"><span class="chat-preview">${i.typing?'typing...':(i.lastMsg||'Start chatting')}</span>${i.unread?`<span class="unread-badge">${i.unread}</span>`:''}</div></div></div>`).join('');});}
+
+window.startChat=async(n)=>{const s=await db.ref('usernames/'+n).once('value');if(!s.exists())return;const pid=s.val(),ids=[me.uid,pid].sort(),cid=ids[0]+'_'+ids[1];await db.ref().update({['users/'+me.uid+'/chats/'+cid]:{with:pid,lastTimestamp:Date.now()},['users/'+pid+'/chats/'+cid]:{with:me.uid,lastTimestamp:Date.now()}});$('search-inp').value='';$('search-res').classList.remove('show');openChat(cid,n,pid);};
+window.openChat=function(cid,name,pid){chatId=cid;partnerId=pid;$('chat-pname').textContent=name;$('msg-area').innerHTML='';db.ref('users/'+pid+'/online').on('value',s=>{const el=$('chat-pstatus');if(s.val()){el.textContent='Online';el.style.color='var(--wa-light)';}else{el.textContent='Offline';el.style.color='var(--wa-text3)';}});db.ref('users/'+pid+'/pfp').once('value').then(s=>{if(s.val())$('chat-avatar').innerHTML=`<img src="${s.val()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;else $('chat-avatar').textContent=name[0].toUpperCase();});if(msgsRef)msgsRef.off();msgsRef=db.ref('chats/'+cid+'/messages').limitToLast(100);let lastDate=null;msgsRef.on('child_added',s=>{const d=s.val(),md=new Date(d.timestamp).toDateString();if(md!==lastDate){addDate(md,d.timestamp);lastDate=md;}renderMsg(s.key,d);});db.ref('users/'+me.uid+'/chats/'+cid+'/unread').set(0);listenTyping();$('chat-screen').classList.add('active');setTimeout(()=>{$('msg-area').scrollTop=$('msg-area').scrollHeight;},200);};
+
+function addDate(md,ts){const d=new Date(ts),now=new Date();let l=md;if(md===now.toDateString())l='Today';else{const y=new Date(now);y.setDate(y.getDate()-1);if(md===y.toDateString())l='Yesterday';}$('msg-area').innerHTML+=`<div class="date-divider"><span>${l}</span></div>`;}
+function renderMsg(k,d){if($('msg-'+k))return;const out=d.from===me.uid,row=document.createElement('div');row.className='msg-row '+(out?'outgoing':'incoming');row.id='msg-'+k;let inner='';if(d.type==='image')inner+=`<img src="${d.imageUrl}" class="msg-image">`;else if(d.type==='voice')inner+=`<div class="voice-msg" onclick="playVoice('${d.audioUrl}',this,${d.duration||5})"><button class="voice-play-btn">▶</button><div class="voice-track"><div class="voice-progress"></div></div><span class="voice-duration">0:${String(d.duration||5).padStart(2,'0')}</span></div>`;else inner+=esc(d.text||'');inner+=`<span class="msg-footer">${new Date(d.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${out?(d.seen?'✓✓':'✓'):''}</span>`;row.innerHTML=`<div class="msg-bubble ${out?'outgoing':'incoming'}">${inner}</div>`;$('msg-area').appendChild(row);$('msg-area').scrollTop=$('msg-area').scrollHeight;if(!out&&!d.seen)db.ref('chats/'+chatId+'/messages/'+k+'/seen').set(!0);}
+
+// Send
+window.sendMsg=function(){const inp=$('msg-inp'),txt=inp.value.trim();if(!txt||!chatId)return;db.ref('chats/'+chatId+'/messages').push({text:txt,from:me.uid,timestamp:Date.now(),type:'text',seen:!1});updateMeta(txt);inp.value='';inp.focus();db.ref('users/'+me.uid+'/typing').set(!1);};
+window.sendMedia=function(i){const f=i.files[0];if(!f||!chatId)return;if(f.size>1e7){toast('Max 10MB');i.value='';return;}const r=new FileReader();r.onload=e=>{db.ref('chats/'+chatId+'/messages').push({imageUrl:e.target.result,from:me.uid,timestamp:Date.now(),type:'image',seen:!1});updateMeta('Image');};r.readAsDataURL(f);i.value='';};
+function updateMeta(last){const u={};u['users/'+me.uid+'/chats/'+chatId+'/lastMsg']=last;u['users/'+me.uid+'/chats/'+chatId+'/lastTimestamp']=Date.now();u['users/'+partnerId+'/chats/'+chatId+'/lastMsg']=last;u['users/'+partnerId+'/chats/'+chatId+'/lastTimestamp']=Date.now();db.ref('users/'+partnerId+'/chats/'+chatId+'/unread').transaction(v=>(v||0)+1);db.ref().update(u);}
+
+// Voice
+window.startRec=async()=>{if(!chatId)return;try{const s=await navigator.mediaDevices.getUserMedia({audio:!0});recorder=new MediaRecorder(s);chunks=[];recorder.ondataavailable=e=>chunks.push(e.data);recorder.onstop=()=>{const b=new Blob(chunks,{type:'audio/webm'}),r=new FileReader();r.onload=e=>{const dr=Math.max(1,Math.round(chunks.length*.08));db.ref('chats/'+chatId+'/messages').push({audioUrl:e.target.result,duration:dr,from:me.uid,timestamp:Date.now(),type:'voice',seen:!1});updateMeta('Voice message');};r.readAsDataURL(b);s.getTracks().forEach(t=>t.stop());};recorder.start();recording=!0;$('voice-btn').classList.add('composer-recording');toast('Recording...');}catch(e){toast('Mic access denied');}};
+window.stopRec=()=>{if(recorder&&recording){recorder.stop();recording=!1;$('voice-btn').classList.remove('composer-recording');}};
+window.playVoice=function(url,el,dr){if(curAudio){curAudio.pause();curAudio=null;}const a=new Audio(url);curAudio=a;const btn=el.querySelector('.voice-play-btn'),bar=el.querySelector('.voice-progress'),tm=el.querySelector('.voice-duration');btn.textContent='⏸';a.play();a.ontimeupdate=()=>{if(a.duration){bar.style.width=(a.currentTime/a.duration)*100+'%';tm.textContent='0:'+String(Math.ceil(a.duration-a.currentTime)).padStart(2,'0');}};a.onended=()=>{btn.textContent='▶';bar.style.width='0%';tm.textContent='0:'+String(dr).padStart(2,'0');curAudio=null;};btn.onclick=e=>{e.stopPropagation();if(a.paused){a.play();btn.textContent='⏸';}else{a.pause();btn.textContent='▶';}};};
+
+// Typing
+let typingTimer;$('msg-inp').addEventListener('input',()=>{db.ref('users/'+me.uid+'/typing').set(!0);clearTimeout(typingTimer);typingTimer=setTimeout(()=>db.ref('users/'+me.uid+'/typing').set(!1),2000);});
+function listenTyping(){db.ref('users/'+partnerId+'/typing').on('value',s=>{const el=$('chat-pstatus');if(s.val()){el.textContent='typing...';el.style.color='var(--wa-light)';}else{db.ref('users/'+partnerId+'/online').once('value').then(o=>{el.textContent=o.val()?'Online':'Offline';el.style.color=o.val()?'var(--wa-light)':'var(--wa-text3)';});}});}
+
+function closeChat(){$('chat-screen').classList.remove('active');if(msgsRef)msgsRef.off();msgsRef=null;chatId=null;partnerId=null;}
+window.closeChat=closeChat;
+
+// Settings
+window.openSettings=()=>{$('settings-screen').classList.add('active');$('set-uname').textContent='@'+uname;$('set-email').textContent=me.email;loadPfp();};
+window.closeSettings=()=>$('settings-screen').classList.remove('active');
+window.openProfile=()=>toast('Profile view');
+window.startCall=()=>toast('Calling... (simulated)');
+window.startVideoCall=()=>toast('Video call... (simulated)');
+
+console.log('Carrot — WhatsApp style ready');
+</script>
+</body>
+</html>
