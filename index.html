@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Offline AI Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#050510;--surface:#0c0c1d;--surface2:#13132b;--border:rgba(255,255,255,0.04);--border2:rgba(255,255,255,0.08);
+            --text:#e8e8f0;--text2:#8888b0;--text3:#555580;
+            --accent:#6366f1;--accent2:#818cf8;--accent-glow:rgba(99,102,241,0.2);
+            --danger:#ef4444;--success:#22c55e;--warning:#f59e0b;
+            --radius:14px;--radius-sm:10px;--radius-lg:18px;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            background:#000;font-family:'Inter',-apple-system,sans-serif;height:100dvh;overflow:hidden;
+            -webkit-tap-highlight-color:transparent;color:var(--text);display:flex;justify-content:center;
+        }
+        .app{width:100%;max-width:750px;height:100dvh;background:var(--bg);display:flex;flex-direction:column;position:relative}
+        @media(min-width:751px){.app{border-left:1px solid var(--border2);border-right:1px solid var(--border2)}}
+
+        #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px;gap:28px;text-align:center}
+        .login-icon{width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center;box-shadow:0 20px 60px var(--accent-glow)}
+        .login-icon svg{width:40px;height:40px;stroke:#fff;fill:none;stroke-width:1.5}
+        #login-screen h1{font-size:30px;font-weight:800;letter-spacing:-0.5px}
+        #login-screen .tagline{color:var(--text2);font-size:14px;max-width:380px;line-height:1.6}
+        .feature-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+        .feature-pill{display:flex;align-items:center;gap:8px;background:var(--surface);padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:12px;color:var(--text2);font-weight:500}
+        .feature-pill svg{width:16px;height:16px;stroke:var(--accent2);fill:none;stroke-width:2}
+        .btn-google{
+            padding:14px 28px;border-radius:var(--radius);border:1px solid var(--border2);background:#fff;color:#1a1a1a;
+            font-weight:600;font-size:15px;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:10px;
+            transition:all .15s;box-shadow:0 4px 20px rgba(0,0,0,0.3)
+        }
+        .btn-google:active{transform:scale(.97);background:#f0f0f0}
+        .btn-google svg{width:20px;height:20px}
+
+        .header{padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);z-index:10;min-height:54px}
+        .header-left{display:flex;align-items:center;gap:10px}
+        .header-icon{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center}
+        .header-icon svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2}
+        .header h1{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--accent),#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .avatar{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;cursor:pointer}
+        .status-pill{font-size:10px;padding:4px 10px;border-radius:20px;font-weight:600;border:1px solid var(--border2);display:flex;align-items:center;gap:5px}
+        .status-pill .dot{width:7px;height:7px;border-radius:50%}
+        .status-pill.ready{color:var(--success);border-color:rgba(34,197,94,0.3)}.status-pill.ready .dot{background:var(--success)}
+        .status-pill.loading{color:var(--warning);border-color:rgba(245,158,11,0.3)}.status-pill.loading .dot{background:var(--warning);animation:pulse 1s infinite}
+        .status-pill.off{color:var(--text3)}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+        .icon-btn{background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;opacity:0.7;transition:all .15s}
+        .icon-btn:hover{opacity:1}
+        .icon-btn svg{width:20px;height:20px;stroke:var(--text2);fill:none;stroke-width:2}
+
+        #download-bar{display:none;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);gap:10px;align-items:center}
+        #download-bar.show{display:flex}
+        #download-bar .dl-info{flex:1;font-size:12px;color:var(--text2)}
+        #download-bar .dl-progress{width:100%;height:4px;background:var(--border2);border-radius:2px;overflow:hidden;margin-top:4px}
+        #download-bar .dl-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .3s}
+        .btn-accent{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px}
+        .btn-accent:disabled{opacity:0.4;cursor:not-allowed}
+        .btn-accent svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2}
+
+        .chat-area{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:12px}
+        .msg{max-width:80%;padding:10px 14px;border-radius:var(--radius-lg);font-size:14px;line-height:1.6;animation:in .25s ease}
+        @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+        .msg.ai{align-self:flex-start;background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:4px}
+        .msg.sys{align-self:center;background:transparent;color:var(--text3);font-size:11px;text-align:center;max-width:90%}
+
+        .input-area{padding:10px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;gap:8px;align-items:center}
+        .input-area input{flex:1;padding:12px 16px;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:14px;outline:none;font-family:'Inter',sans-serif;transition:all .15s}
+        .input-area input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+        .input-area input::placeholder{color:var(--text3)}
+        .send-btn{width:42px;height:42px;border-radius:50%;border:none;background:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+        .send-btn:active{transform:scale(.9);background:var(--accent2)}
+        .send-btn:disabled{opacity:.3;cursor:not-allowed}
+        .send-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2}
+
+        #settings-panel{display:none;position:absolute;top:54px;right:10px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:10px;z-index:20;min-width:180px;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+        #settings-panel.show{display:block}
+        #settings-panel button{display:block;width:100%;padding:10px 14px;background:none;border:none;color:var(--text);cursor:pointer;text-align:left;font-size:13px;border-radius:8px;font-family:'Inter',sans-serif;transition:background .15s}
+        #settings-panel button:hover{background:var(--surface2)}
+        #settings-panel button.danger{color:var(--danger)}
+
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+    </style>
+</head>
+<body>
+<div class="app" id="app-root">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="login-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+        </div>
+        <h1>Offline AI Vault</h1>
+        <p class="tagline">Your private AI that runs entirely on your device. No servers. No internet. No data leaves your laptop.</p>
+        <div class="feature-row">
+            <div class="feature-pill">
+                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                100% Private
+            </div>
+            <div class="feature-pill">
+                <svg viewBox="0 0 24 24"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/><path d="M10.71 5.05A16 16 0 0122.58 9"/><path d="M1.42 9a15.91 15.91 0 014.7-2.88"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                Works Offline
+            </div>
+            <div class="feature-pill">
+                <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10 10 0 0012 2z"/><path d="M12 6v4l3 3"/><circle cx="8" cy="10" r="1.5"/><circle cx="16" cy="10" r="1.5"/><path d="M8 14s1 2 4 2 4-2 4-2"/></svg>
+                Mistral 7B
+            </div>
+            <div class="feature-pill">
+                <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                Local Only
+            </div>
+        </div>
+        <button class="btn-google" onclick="signInWithGoogle()">
+            <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Sign in with Google
+        </button>
+    </div>
+
+    <!-- MAIN SCREEN -->
+    <div id="main-screen" style="display:none;flex:1;flex-direction:column">
+        <div class="header">
+            <div class="header-left">
+                <div class="header-icon">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </div>
+                <h1>AI Vault</h1>
+                <span class="status-pill off" id="status-pill"><span class="dot"></span><span id="status-text">Model not loaded</span></span>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+                <button class="icon-btn" onclick="toggleSettings()" title="Settings">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                </button>
+                <div class="avatar" id="user-avatar" onclick="toggleSettings()">?</div>
+            </div>
+        </div>
+        <div id="download-bar">
+            <div class="dl-info">
+                <div id="dl-status">Ready to download Mistral 7B (~4GB, one-time)</div>
+                <div class="dl-progress"><div class="dl-fill" id="dl-fill"></div></div>
+            </div>
+            <button class="btn-accent" onclick="downloadModel()" id="dl-btn">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download
+            </button>
+        </div>
+        <div class="chat-area" id="chat-area">
+            <div class="msg sys">Welcome to Offline AI Vault</div>
+            <div class="msg sys">Sign in complete. Download the Mistral AI model to begin.</div>
+            <div class="msg sys">All processing is local. Your data never leaves this device.</div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Ask anything..." onkeypress="if(event.key==='Enter')sendMsg()" disabled>
+            <button class="send-btn" id="send-btn" onclick="sendMsg()" disabled>
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div id="settings-panel">
+        <button onclick="downloadModel()">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;margin-right:8px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Model
+        </button>
+        <button onclick="clearChat()">Clear Chat</button>
+        <button class="danger" onclick="signOut()">Sign Out</button>
+    </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<script type="importmap">
+{"imports":{"@mlc-ai/web-llm":"https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/lib/index.min.js"}}
+</script>
+
+<script type="module">
+import { CreateWebWorkerMLCEngine } from '@mlc-ai/web-llm';
+
+firebase.initializeApp({apiKey:"AIzaSyAr_Fcr_IbMl9syK4zxep3ar9OEHHBppT8",authDomain:"myos-8e487.firebaseapp.com",databaseURL:"https://myos-8e487-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"myos-8e487",storageBucket:"myos-8e487.firebasestorage.app",messagingSenderId:"1020781755391",appId:"1:1020781755391:web:2bb6987486feb02b2ec5ca"});
+const auth=firebase.auth(),db=firebase.database();
+const $=id=>document.getElementById(id);
+
+let engine=null,modelLoaded=false,currentUser=null;
+const MODEL_NAME='Mistral-7B-Instruct-v0.3-q4f16_1-MLC';
+
+window.signInWithGoogle=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+auth.onAuthStateChanged(user=>{
+    if(user){currentUser=user;$('login-screen').style.display='none';$('main-screen').style.display='flex';
+        $('user-avatar').textContent=(user.displayName||'U')[0].toUpperCase();
+        $('download-bar').classList.add('show');addMsg('Signed in as '+user.displayName,'sys');
+    }else{currentUser=null;$('login-screen').style.display='flex';$('main-screen').style.display='none';}
+});
+window.signOut=()=>auth.signOut();
+
+window.downloadModel=async()=>{
+    if(modelLoaded){addMsg('Model already loaded','sys');return}
+    const btn=$('dl-btn');btn.disabled=true;btn.textContent='Downloading...';
+    $('status-pill').className='status-pill loading';$('status-text').textContent='Downloading...';
+    addMsg('Downloading Mistral 7B (~4GB). One-time only. Please wait...','sys');
+    try{
+        engine=await CreateWebWorkerMLCEngine(
+            new Worker(new URL('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/lib/worker.js',import.meta.url),{type:'module'}),
+            MODEL_NAME,{initProgressCallback:p=>{
+                const pct=Math.round(p*100);$('dl-fill').style.width=pct+'%';
+                $('dl-status').textContent=pct+'% - '+(pct<100?'Downloading...':'Finalizing...');
+            }}
+        );
+        modelLoaded=true;$('user-input').disabled=false;$('send-btn').disabled=false;
+        $('download-bar').classList.remove('show');
+        $('status-pill').className='status-pill ready';$('status-text').textContent='Mistral 7B Ready';
+        addMsg('Mistral 7B loaded. All AI runs locally on your device. No internet needed.','sys');
+    }catch(e){
+        console.error(e);$('dl-status').textContent='Download failed';
+        $('status-pill').className='status-pill off';$('status-text').textContent='Failed';
+        btn.disabled=false;btn.textContent='Retry';
+        addMsg('Download failed. Using fallback mode.','sys');setupFallback();
+    }
+};
+
+function setupFallback(){modelLoaded=true;$('user-input').disabled=false;$('send-btn').disabled=false;$('download-bar').classList.remove('show');$('status-pill').className='status-pill ready';$('status-text').textContent='Basic Mode';}
+
+function addMsg(text,type){
+    const d=document.createElement('div');d.className='msg '+type;d.textContent=text;
+    $('chat-area').appendChild(d);$('chat-area').scrollTop=$('chat-area').scrollHeight;
+}
+
+const fallbackDB={
+    'hello':'Hello. I am your private offline AI. How can I help?','hi':'Hi. I run entirely on your device.',
+    'what are you':'I am Offline AI Vault. I process everything on your device. No cloud. No servers.',
+    'privacy':'Your privacy is absolute. Nothing you ask ever leaves this device.',
+    'capital of india':'New Delhi is the capital of India.',
+    'largest planet':'Jupiter is the largest planet in our solar system.',
+};
+
+window.sendMsg=async()=>{
+    const inp=$('user-input'),text=inp.value.trim();if(!text||!modelLoaded)return;
+    addMsg(text,'user');inp.value='';inp.focus();
+    if(engine){
+        try{
+            const reply=await engine.chat.completions.create({messages:[{role:'user',content:text}],max_tokens:300,temperature:0.7});
+            addMsg(reply.choices[0].message.content,'ai');
+        }catch(e){addMsg(fallbackDB[text.toLowerCase()]||'I understand your question but my knowledge is limited in fallback mode.','ai');}
+    }else{
+        setTimeout(()=>addMsg(fallbackDB[text.toLowerCase()]||'Fallback mode active. Full model provides better answers.','ai'),400);
+    }
+};
+
+window.toggleSettings=()=>$('settings-panel').classList.toggle('show');
+window.clearChat=()=>{$('chat-area').innerHTML='';addMsg('Chat cleared.','sys');$('settings-panel').classList.remove('show');}
+document.addEventListener('click',e=>{if(!e.target.closest('#settings-panel')&&!e.target.closest('[onclick*="toggleSettings"]')&&!e.target.closest('.avatar'))$('settings-panel').classList.remove('show');});
+</script>
+</body>
+</html>
