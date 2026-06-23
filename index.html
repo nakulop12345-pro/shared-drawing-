@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Vault — Life Manager</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vault">
+    <meta name="theme-color" content="#03030a">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZhdWx0IiwKICAic2hvcnRfbmFtZSI6ICJWYXVsdCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMDMwMzBhIiwKICAidGhlbWVfY29sb3IiOiAiIzAzMDMwYSIsCiAgImljb25zIjogW3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhacFpYZENiM2c5SWpBdU1TSWdhR1ZwWjJoMFBTSXhMak1pTHo0S1BITjBlV3hsUG1GdWJtbHVaM0psWVhScGIyNCtDaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQThMM04wZVd4bFBtTnNhV1Z1ZEY5c2FXNWxQV1poYkhObEx6NEsiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIiwicHVycG9zZSI6ImFueSJ9XX0=">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#03030a;--surface:rgba(10,10,30,0.7);--surface2:rgba(18,18,45,0.8);--border:rgba(255,255,255,0.04);--border2:rgba(255,255,255,0.08);
+            --text:#e8e8f0;--text2:#9090b0;--text3:#555580;
+            --accent:#6366f1;--accent2:#818cf8;--glow:rgba(99,102,241,0.25);--neon:#a855f7;
+            --danger:#ef4444;--success:#22c55e;--warning:#f59e0b;--info:#3b82f6;--pink:#ec4899;--teal:#14b8a6;
+            --radius:16px;--radius-sm:12px;--radius-xs:8px;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#000;font-family:'Inter',-apple-system,sans-serif;height:100dvh;overflow:hidden;-webkit-tap-highlight-color:transparent;color:var(--text);display:flex;justify-content:center}
+        .app{width:100%;max-width:500px;height:100dvh;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden}
+        @media(min-width:501px){.app{border-left:1px solid var(--border2);border-right:1px solid var(--border2)}}
+
+        .header{padding:16px 18px 12px;display:flex;align-items:center;justify-content:space-between;background:transparent;z-index:10;min-height:56px}
+        .header h1{font-size:20px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--accent2),var(--neon),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .avatar-btn{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--neon));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;cursor:pointer;border:none;box-shadow:0 0 20px var(--glow);flex-shrink:0}
+        .back-btn{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+        .screen{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;background:var(--bg);transition:transform .3s ease,opacity .3s ease}
+        .screen.hidden{opacity:0;pointer-events:none;transform:scale(0.96)}
+        #login-screen{align-items:center;justify-content:center;padding:40px;text-align:center;gap:24px}
+        #login-screen h2{font-size:24px;font-weight:800;letter-spacing:-0.3px}
+        #login-screen p{color:var(--text2);font-size:13px;max-width:280px;line-height:1.6}
+        .btn-google{padding:14px 24px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:#fff;color:#1a1a1a;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;font-family:'Inter',sans-serif}
+        .btn-google:active{transform:scale(.96)}
+        .btn-google svg{width:20px;height:20px}
+
+        .main-content{flex:1;overflow-y:auto;padding:0 14px 10px}
+        .greeting{padding:4px 0 16px}.greeting .time{font-size:12px;color:var(--text2)}.greeting .name{font-size:20px;font-weight:800;color:var(--text)}
+
+        .section-header{display:flex;justify-content:space-between;align-items:center;padding:8px 4px}
+        .section-header h3{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:600}
+
+        .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+        .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;transition:all .15s;backdrop-filter:blur(20px)}
+        .stat-card:active{background:var(--surface2);transform:scale(0.97)}
+        .stat-card .stat-icon{font-size:24px;margin-bottom:6px}
+        .stat-card .stat-num{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--neon));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .stat-card .stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+        .stat-card .stat-sub{font-size:11px;color:var(--text2);margin-top:1px}
+
+        .list-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;transition:all .15s;backdrop-filter:blur(20px);cursor:pointer}
+        .list-card:active{background:var(--surface2)}
+        .list-card .icon{width:38px;height:38px;border-radius:var(--radius-xs);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .list-card .icon.red{background:rgba(239,68,68,0.1);color:var(--danger)}.list-card .icon.green{background:rgba(34,197,94,0.1);color:var(--success)}
+        .list-card .icon.blue{background:rgba(59,130,246,0.1);color:var(--info)}.list-card .icon.yellow{background:rgba(245,158,11,0.1);color:var(--warning)}
+        .list-card .icon.purple{background:rgba(168,85,247,0.1);color:var(--neon)}.list-card .icon.pink{background:rgba(236,72,153,0.1);color:var(--pink)}.list-card .icon.teal{background:rgba(20,184,166,0.1);color:var(--teal)}
+        .list-card .icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+        .list-card .info{flex:1;min-width:0}.list-card .title{font-size:13px;font-weight:600;margin-bottom:1px}.list-card .sub{font-size:11px;color:var(--text3)}
+        .list-card .extra{text-align:right;flex-shrink:0}.list-card .amount{font-size:14px;font-weight:700}.list-card .amount.red{color:var(--danger)}.list-card .amount.green{color:var(--success)}
+        .empty-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;color:var(--text3);font-size:12px}
+
+        .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:50;justify-content:flex-end;align-items:flex-end}
+        .modal-overlay.on{display:flex}
+        .modal-sheet{background:var(--surface2);border-radius:var(--radius) var(--radius) 0 0;padding:20px 18px 30px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto;border:1px solid var(--border2);border-bottom:none;backdrop-filter:blur(30px);animation:slideUp .3s ease}
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        .modal-sheet h2{font-size:17px;font-weight:700;margin-bottom:4px}
+        .modal-sheet .subtitle{font-size:11px;color:var(--text3);margin-bottom:14px}
+        .modal-sheet input,.modal-sheet textarea{width:100%;padding:11px 13px;border-radius:var(--radius-xs);border:1.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;outline:none;font-family:'Inter',sans-serif;margin-bottom:8px;resize:vertical;transition:all .15s}
+        .modal-sheet input:focus,.modal-sheet textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+        .btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+        .btn{padding:10px 20px;border-radius:var(--radius-xs);border:none;font-weight:600;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;transition:all .15s}
+        .btn:active{transform:scale(.95)}.btn-primary{background:var(--accent);color:#fff}.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+
+        .install-bar{display:none;padding:10px 14px;background:var(--surface2);border-top:1px solid var(--border2);align-items:center;gap:10px}
+        .install-bar.show{display:flex}
+        .install-bar span{flex:1;font-size:12px;color:var(--text2)}
+        .install-bar button{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:20px;font-weight:600;font-size:11px;cursor:pointer}
+
+        .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text);font-size:12px;padding:10px 22px;border-radius:50px;z-index:100;opacity:0;transition:all .3s;pointer-events:none;border:1px solid var(--border2)}
+        .toast.show{opacity:1}
+        ::-webkit-scrollbar{width:0}
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- LOGIN SCREEN -->
+    <div class="screen" id="login-screen">
+        <div style="font-size:48px;margin-bottom:8px">🔐</div>
+        <h2>Welcome to Vault</h2>
+        <p>Your private life manager. Deadlines, money, documents — all in one place.</p>
+        <button class="btn-google" onclick="signIn()">
+            <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Sign in with Google
+        </button>
+    </div>
+
+    <!-- HOME SCREEN -->
+    <div class="screen hidden" id="home-screen">
+        <div class="header">
+            <h1>Vault</h1>
+            <button class="avatar-btn" id="login-btn" onclick="signOut()">?</button>
+        </div>
+        <div class="main-content">
+            <div class="greeting"><div class="time" id="time-greet">Good Morning</div><div class="name" id="user-name">User</div></div>
+            <div class="stat-grid">
+                <div class="stat-card" onclick="openPage('deadlines')"><div class="stat-icon">📅</div><div class="stat-num" id="home-deadlines">0</div><div class="stat-label">Deadlines</div></div>
+                <div class="stat-card" onclick="openPage('debts')"><div class="stat-icon">💰</div><div class="stat-num" id="home-debts">₹0</div><div class="stat-label">Owed to You</div></div>
+                <div class="stat-card" onclick="openPage('subscriptions')"><div class="stat-icon">📋</div><div class="stat-num" id="home-subs">₹0</div><div class="stat-label">Monthly Subs</div></div>
+                <div class="stat-card" onclick="openPage('documents')"><div class="stat-icon">📁</div><div class="stat-num" id="home-docs">0</div><div class="stat-label">Documents</div></div>
+                <div class="stat-card" onclick="openPage('warranties')"><div class="stat-icon">🛡️</div><div class="stat-num" id="home-warranty">0</div><div class="stat-label">Warranties</div></div>
+                <div class="stat-card" onclick="openPage('gifts')"><div class="stat-icon">🎁</div><div class="stat-num" id="home-gifts">0</div><div class="stat-label">Gift Ideas</div></div>
+            </div>
+            <div class="section-header"><h3>Quick Notes</h3></div>
+            <div id="home-notes"></div>
+        </div>
+        <div class="install-bar" id="install-bar"><span>Add Vault to your home screen</span><button onclick="installApp()">Install</button></div>
+    </div>
+
+    <!-- PAGE SCREEN (Deadlines, Debts, etc.) -->
+    <div class="screen hidden" id="page-screen">
+        <div class="header">
+            <button class="back-btn" onclick="goHome()">←</button>
+            <h1 id="page-title">Page</h1>
+            <button class="avatar-btn" id="page-avatar">+</button>
+        </div>
+        <div class="main-content" id="page-content"></div>
+    </div>
+
+    <div class="modal-overlay" id="modal"><div class="modal-sheet" id="modal-content"></div></div>
+    <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAr_Fcr_IbMl9syK4zxep3ar9OEHHBppT8",authDomain:"myos-8e487.firebaseapp.com",databaseURL:"https://myos-8e487-default-rtdb.asia-southeast1.firebasedatabase.app"});
+const auth=firebase.auth(),db=firebase.database();const $=id=>document.getElementById(id);
+let me=null,uname='User',currentPage='';
+let deferredPrompt=null;
+
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2000)}
+$('time-greet').textContent=new Date().getHours()<12?'Good Morning':new Date().getHours()<17?'Good Afternoon':'Good Evening';
+
+// PWA Install
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('install-bar').classList.add('show')});
+window.installApp=()=>{if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;$('install-bar').classList.remove('show')})}};
+
+// Auth
+window.signIn=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+window.signOut=()=>auth.signOut();
+auth.onAuthStateChanged(u=>{
+    if(u){me=u;uname=u.displayName||'User';$('user-name').textContent=uname;$('login-btn').textContent=uname[0].toUpperCase();$('login-screen').classList.add('hidden');$('home-screen').classList.remove('hidden');loadHome();}
+    else{me=null;$('login-screen').classList.remove('hidden');$('home-screen').classList.add('hidden');$('page-screen').classList.add('hidden');}
+});
+
+function loadHome(){
+    if(!me)return;
+    ['deadlines','debts','subscriptions','documents','warranties','gifts','notes'].forEach(p=>{
+        db.ref('users/'+me.uid+'/'+p).once('value').then(s=>{
+            const d=s.val();let count=0,total=0;
+            if(d){Object.values(d).forEach(v=>{count++;if(p==='debts')total+=v.amount||0;if(p==='subscriptions')total+=v.amount||0})}
+            if(p==='deadlines')$('home-deadlines').textContent=count;
+            if(p==='debts')$('home-debts').textContent='₹'+total;
+            if(p==='subscriptions')$('home-subs').textContent='₹'+total;
+            if(p==='documents')$('home-docs').textContent=count;
+            if(p==='warranties')$('home-warranty').textContent=count;
+            if(p==='gifts')$('home-gifts').textContent=count;
+            if(p==='notes'){
+                if(d){const notes=Object.values(d).slice(-3);$('home-notes').innerHTML=notes.map(v=>`<div class="list-card"><div class="icon teal"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div><div class="info"><div class="title">${v.text}</div></div></div>`).join('')}else $('home-notes').innerHTML='<div class="empty-card">No notes</div>';
+            }
+        });
+    });
+}
+
+// Pages
+window.openPage=function(page){
+    currentPage=page;
+    const titles={deadlines:'Deadlines',debts:'Money',subscriptions:'Subscriptions',documents:'Documents',warranties:'Warranties',gifts:'Gifts',notes:'Notes'};
+    $('page-title').textContent=titles[page]||page;
+    $('page-avatar').textContent='+';
+    $('page-avatar').onclick=()=>openModal(page==='warranties'?'warranty':page==='subscriptions'?'subscription':page);
+    $('home-screen').classList.add('hidden');$('page-screen').classList.remove('hidden');
+    loadPage(page);
+};
+window.goHome=()=>{$('page-screen').classList.add('hidden');$('home-screen').classList.remove('hidden');loadHome()};
+
+function loadPage(path){
+    db.ref('users/'+me.uid+'/'+path).once('value').then(s=>{
+        const d=s.val();let html='';
+        const icons={deadlines:{c:'red',s:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>'},
+            debts:{c:'red',s:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>'},
+            subscriptions:{c:'purple',s:'<polyline points="20 6 9 17 4 12"/>'},documents:{c:'blue',s:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>'},
+            warranties:{c:'yellow',s:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'},gifts:{c:'pink',s:'<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/>'},
+            notes:{c:'teal',s:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>'}};
+        const ic=icons[path];
+        if(d){Object.entries(d).sort((a,b)=>b[1].created-a[1].created).forEach(([k,v])=>{
+            let sub='',extra='';
+            if(path==='deadlines')sub=v.date;
+            else if(path==='debts'){sub=(v.paid?'Paid':'Pending')+' — '+v.note;extra=`<div class="amount ${v.paid?'green':'red'}">₹${v.amount}</div><button class="btn ${v.paid?'btn-ghost':'btn-primary'}" style="padding:4px 10px;font-size:10px;margin-top:4px" onclick="event.stopPropagation();togglePaid('${path}','${k}',${v.paid})">${v.paid?'Undo':'Paid'}</button>`}
+            else if(path==='subscriptions'){sub='Monthly';extra=`<div class="amount">₹${v.amount}</div>`}
+            else if(path==='documents'){sub=(v.size/1024).toFixed(0)+' KB';extra=`<a href="${v.data}" download="${v.name}" style="color:var(--accent2);font-size:11px">Get</a>`}
+            else if(path==='warranties')sub='Expires: '+v.expiry;
+            else if(path==='gifts')sub=v.date||'';
+            html+=`<div class="list-card"><div class="icon ${ic.c}"><svg viewBox="0 0 24 24">${ic.s}</svg></div><div class="info"><div class="title">${v.title||v.person||v.name||v.product||v.text||''}</div><div class="sub">${sub}</div></div><div class="extra">${extra||''}</div><button class="btn btn-ghost" style="position:absolute;top:6px;right:6px;padding:2px 8px;font-size:10px;opacity:0.4" onclick="event.stopPropagation();deleteItem('${path}','${k}')">X</button></div>`;
+        })}
+        if(!html)html=`<div class="empty-card">Nothing here yet. Tap + to add.</div>`;
+        $('page-content').innerHTML=html;
+    });
+}
+window.deleteItem=function(p,k){db.ref('users/'+me.uid+'/'+p+'/'+k).remove();toast('Deleted');loadPage(p);loadHome()};
+window.togglePaid=function(p,k,v){db.ref('users/'+me.uid+'/'+p+'/'+k+'/paid').set(!v);loadPage(p);loadHome()};
+
+// Modal
+function openModal(type){
+    const mc=$('modal-content');
+    if(type==='deadline')mc.innerHTML=`<h2>Add Deadline</h2><p class="subtitle">Never miss what matters</p><input id="f1" placeholder="Title"><input id="f2" type="date"><div class="btn-row"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveItem('deadlines',{title:getv('f1'),date:getv('f2')})">Save</button></div>`;
+    else if(type==='debts')mc.innerHTML=`<h2>Log Debt</h2><p class="subtitle">Track who owes you</p><input id="f1" placeholder="Person"><input id="f2" placeholder="Amount (₹)" type="number"><input id="f3" placeholder="Note"><div class="btn-row"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveItem('debts',{person:getv('f1'),amount:parseInt(getv('f2')),note:getv('f3'),paid:false})">Save</button></div>`;
+    else if(type==='subscription')mc.innerHTML=`<h2>Add Subscription</h2><p class="subtitle">Track monthly payments</p><input id="f1" placeholder="Name"><input id="f2" placeholder="Monthly amount (₹)" type="number"><div class="btn-row"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveItem('subscriptions',{name:getv('f1'),amount:parseInt(getv('f2'))})">Save</button></div>`;
+    else if(type==='document')mc.innerHTML=`<h2>Upload Document</h2><p class="subtitle">Private encrypted vault</p><input id="f1" placeholder="Name"><input type="file" id="f2"><div class="btn-row"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="uploadDoc()">Upload</button></div>`;
+    else if(type==='warranty')mc.innerHTML=`<h2>Add Warranty</h2><p class="subtitle">Never miss an expiry</p><input id="f1" placeholder="Product"><input id="f2" type="date"><input id="f3" placeholder="Bill number"><div class="btn-row"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveItem('warranties',{product:getv('f1'),expiry:getv('f2'),bill:getv('f3')})">Save</button></div>`;
+    else if(type==='gift')mc.innerHTML=`<h2>Add Gift Idea</h2><p class="subtitle">Remember what they love</p><input id="f1" placeholder="Person"><input id="f2" placeholder="Gift idea"><input id="f3" type="date"><div class="btn-row"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveItem('gifts',{person:getv('f1'),idea:getv('f2'),date:getv('f3')})">Save</button></div>`;
+    else if(type==='note')mc.innerHTML=`<h2>Quick Note</h2><p class="subtitle">Capture thoughts instantly</p><textarea id="f1" rows="3" placeholder="Write anything..."></textarea><div class="btn-row"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveItem('notes',{text:getv('f1')})">Save</button></div>`;
+    $('modal').classList.add('on');
+}
+function getv(id){const el=document.getElementById(id);return el?el.value:''}
+window.openModal=openModal;
+window.closeModal=()=>$('modal').classList.remove('on');
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});
+window.saveItem=function(p,data){
+    if(!me)return toast('Sign in');
+    if(!Object.values(data).some(v=>v))return toast('Fill fields');
+    data.created=Date.now();db.ref('users/'+me.uid+'/'+p).push(data);toast('Saved');closeModal();loadPage(p);loadHome();
+};
+window.uploadDoc=function(){
+    if(!me)return toast('Sign in');
+    const f=document.getElementById('f2')?.files[0];if(!f)return toast('Select file');
+    const r=new FileReader();r.onload=e=>{
+        db.ref('users/'+me.uid+'/documents').push({name:document.getElementById('f1')?.value||f.name,data:e.target.result,size:f.size,created:Date.now()});
+        toast('Uploaded');closeModal();loadPage('documents');loadHome();
+    };r.readAsDataURL(f);
+};
+</script>
+</body>
+</html>
