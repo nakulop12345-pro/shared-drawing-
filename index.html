@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>NODE — electronics</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+<style>
+  :root {
+    --bg: #0B120F;
+    --surface: #121C17;
+    --surface-raised: #182620;
+    --border: #223229;
+    --copper: #C17A4D;
+    --copper-bright: #E2965E;
+    --signal: #7CD9A5;
+    --warn: #E2965E;
+    --dead: #4A5750;
+    --text: #EDF2EE;
+    --muted: #869187;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+  .display { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+  header { border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; background: var(--bg); }
+  header .bar { display: flex; align-items: center; gap: 20px; padding: 16px 0; }
+  .logo { display: flex; align-items: center; gap: 8px; }
+  .logo-mark { width: 30px; height: 30px; border-radius: 6px; background: var(--surface-raised); border: 1px solid var(--copper); display: flex; align-items: center; justify-content: center; }
+  .search-box { flex: 1; position: relative; max-width: 480px; }
+  .search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+  .search-box input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px 10px 38px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; }
+  .cart { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; }
+
+  .hero { padding: 48px 0 32px; }
+  .trace { width: 100%; display: block; margin-bottom: 18px; opacity: 0.9; }
+  .hero h1 { font-size: 40px; line-height: 1.1; margin: 0 0 12px; max-width: 620px; }
+  .hero p { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0 0 20px; }
+  .brand-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; }
+  .chip.active { border-color: var(--copper); background: rgba(193,122,77,0.12); color: var(--copper-bright); }
+
+  .filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+  .cat-pill { font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .cat-pill.active { border-color: var(--copper); background: var(--surface-raised); color: var(--text); }
+  .right-controls { margin-left: auto; display: flex; gap: 10px; position: relative; }
+  select, .brand-btn { font-size: 13px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-family: inherit; }
+  .brand-btn { display: flex; align-items: center; gap: 6px; }
+  .brand-menu { position: absolute; top: 110%; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px; width: 200px; z-index: 30; max-height: 260px; overflow-y: auto; display: none; }
+  .brand-menu.open { display: block; }
+  .brand-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; font-size: 13px; cursor: pointer; border-radius: 5px; }
+  .brand-item:hover { background: var(--surface-raised); }
+  .brand-clear { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; color: var(--copper-bright); cursor: pointer; text-align: center; }
+
+  .active-chips { padding: 16px 0 0; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag-chip { font-size: 12px; font-family: 'IBM Plex Mono', monospace; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 20px; padding: 5px 10px; display: flex; align-items: center; gap: 6px; color: var(--muted); }
+  .tag-chip svg { cursor: pointer; }
+
+  .count { font-size: 13px; color: var(--muted); margin: 16px 0; font-family: 'IBM Plex Mono', monospace; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; padding-bottom: 60px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; position: relative; display: flex; flex-direction: column; gap: 10px; }
+  .pin { position: absolute; top: 10px; right: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--copper); }
+  .thumb { width: 100%; height: 120px; border-radius: 8px; background: var(--surface-raised); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
+  .card-top { display: flex; align-items: center; justify-content: space-between; }
+  .brand-label { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .stock { font-size: 10px; font-family: 'IBM Plex Mono', monospace; border-radius: 4px; padding: 2px 6px; border: 1px solid; }
+  .name { font-size: 16px; margin: 0 0 4px; }
+  .about { font-size: 12.5px; color: var(--muted); margin: 0 0 6px; line-height: 1.5; }
+  .spec { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--muted); margin: 0; line-height: 1.5; }
+  .card-bottom { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .price { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 16px; }
+  .add-btn { font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--copper); background: rgba(193,122,77,0.12); color: var(--copper-bright); cursor: pointer; font-family: inherit; }
+  .add-btn:disabled { border-color: var(--dead); background: transparent; color: var(--dead); cursor: not-allowed; opacity: 0.6; }
+
+  .empty { text-align: center; padding: 60px 0; color: var(--muted); }
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; font-size: 12px; color: var(--dead); font-family: 'IBM Plex Mono', monospace; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <div class="logo">
+      <div class="logo-mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C17A4D" stroke-width="1.6"><rect x="7" y="7" width="10" height="10" rx="1"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg></div>
+      <span class="display" style="font-size:20px;">NODE</span>
+    </div>
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#869187" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="searchInput" placeholder="Search phones, laptops, brands..." />
+    </div>
+    <div class="cart">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EDF2EE" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+      <span class="mono" id="cartCount">0</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap hero">
+  <svg class="trace" height="46" viewBox="0 0 1000 46" preserveAspectRatio="none">
+    <path d="M0 23 H300 M300 23 V8 H460 M300 23 V38 H460 M700 23 H1000 M700 23 V8 H540 M700 23 V38 H540" stroke="#2C3F33" stroke-width="1.5" fill="none" />
+    <circle cx="80" cy="23" r="3.5" fill="#C17A4D" /><circle cx="460" cy="8" r="3.5" fill="#C17A4D" /><circle cx="540" cy="38" r="3.5" fill="#C17A4D" /><circle cx="920" cy="23" r="3.5" fill="#C17A4D" />
+  </svg>
+  <h1 class="display">Every device worth owning, in one board.</h1>
+  <p id="heroSub"></p>
+  <div class="brand-row" id="brandRow"></div>
+</div>
+
+<div class="wrap filterbar">
+  <div id="catPills" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+  <div class="right-controls">
+    <div style="position:relative;">
+      <button class="brand-btn" id="brandBtn">Brands <span id="brandCountLabel"></span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#869187" stroke-width="1.6"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="brand-menu" id="brandMenu"></div>
+    </div>
+    <select id="sortSelect">
+      <option value="featured">Featured</option>
+      <option value="price-asc">Price: low to high</option>
+      <option value="price-desc">Price: high to low</option>
+      <option value="name">Name A-Z</option>
+    </select>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="active-chips" id="activeChips"></div>
+  <p class="count" id="resultCount"></p>
+  <div class="grid" id="grid"></div>
+</div>
+
+<footer>NODE — electronics catalog · demo data, more brands and categories coming</footer>
+
+<script>
+const CATEGORIES = ["All","Phones","Laptops","Tablets","Audio","Wearables","TVs","Gaming","Cameras"];
+const BRANDS = ["Apple","Samsung","Sony","Google","LG","Dell","Microsoft","Bose","JBL","Lenovo","Asus","Canon","Nintendo","HP"];
+
+const CATEGORY_ICON = {
+  Phones: 'M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm4 18h.01',
+  Laptops: 'M3 5h18v10H3zM1 19h22l-2-3H3z',
+  Tablets: 'M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm6 16h.01',
+  Audio: 'M12 3a9 9 0 0 0-9 9v6a2 2 0 0 0 2 2h2v-8H5a7 7 0 0 1 14 0h-2v8h2a2 2 0 0 0 2-2v-6a9 9 0 0 0-9-9Z',
+  Wearables: 'M8 6h8v3H8zM8 15h8v3H8zM7 9h10v6H7z',
+  TVs: 'M3 4h18v12H3zM8 20h8M12 16v4',
+  Gaming: 'M6 9h4M8 7v4M15 10h.01M18 8h.01M6 6h12a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4h-1l-2-2H9l-2 2H6a4 4 0 0 1-4-4v-4a4 4 0 0 1 4-4Z',
+  Cameras: 'M4 8h3l2-2h6l2 2h3v11H4Zm8 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z',
+};
+
+const STOCK_LABEL = { in: "in stock", low: "low stock", out: "sold out" };
+const STOCK_COLOR = { in: "#7CD9A5", low: "#E2965E", out: "#6B756E" };
+
+const PRODUCTS = [
+  {id:1,name:"iPhone 16 Pro",brand:"Apple",category:"Phones",price:999,spec:"6.3\" OLED / A18 Pro / 256GB",stock:"in",about:"Apple's flagship phone with a titanium frame, the A18 Pro chip, and a pro camera system for stills and video."},
+  {id:2,name:"MacBook Pro 14",brand:"Apple",category:"Laptops",price:1999,spec:"M4 Pro / 18GB / 512GB SSD",stock:"in",about:"A compact pro laptop built for demanding creative work, powered by Apple silicon and a Liquid Retina XDR display."},
+  {id:3,name:"iPad Air",brand:"Apple",category:"Tablets",price:599,spec:"10.9\" Liquid Retina / M2 / 128GB",stock:"in",about:"A slim, powerful tablet that balances portability with real productivity, great for sketching, browsing, and light editing."},
+  {id:4,name:"AirPods Pro 2",brand:"Apple",category:"Audio",price:249,spec:"ANC / USB-C / 6hr battery",stock:"in",about:"Wireless earbuds with adaptive noise cancellation and spatial audio, now with a USB-C charging case."},
+  {id:5,name:"Apple Watch Series 10",brand:"Apple",category:"Wearables",price:429,spec:"46mm / GPS+Cellular / Always-On",stock:"in",about:"A slimmer, always-on smartwatch that tracks fitness, sleep, and health metrics with optional cellular connectivity."},
+  {id:6,name:"Galaxy S25 Ultra",brand:"Samsung",category:"Phones",price:1299,spec:"6.8\" AMOLED / Snapdragon 8 Elite / 512GB",stock:"in",about:"Samsung's top-tier phone with a built-in S Pen, a massive AMOLED display, and pro-grade zoom cameras."},
+  {id:7,name:"Galaxy Tab S10",brand:"Samsung",category:"Tablets",price:799,spec:"11\" Dynamic AMOLED / 256GB",stock:"in",about:"A premium Android tablet with a vivid AMOLED screen, well suited to note-taking, streaming, and multitasking."},
+  {id:8,name:"Galaxy Buds3 Pro",brand:"Samsung",category:"Audio",price:199,spec:"ANC / 360 Audio / IP57",stock:"in",about:"Earbuds with active noise cancellation and 360 audio, tuned for all-day comfort and clear calls."},
+  {id:9,name:"Galaxy Watch 7",brand:"Samsung",category:"Wearables",price:329,spec:"44mm / BioActive Sensor / LTE",stock:"low",about:"A health-focused smartwatch with sleep coaching, heart monitoring, and optional LTE for calls on the go."},
+  {id:10,name:"Samsung Neo QLED 65\"",brand:"Samsung",category:"TVs",price:1799,spec:"4K / Mini LED / 165Hz",stock:"in",about:"A large Mini LED television with deep contrast and a fast refresh rate, built for gaming and movies alike."},
+  {id:11,name:"WH-1000XM6",brand:"Sony",category:"Audio",price:399,spec:"ANC / 30hr / Hi-Res Audio",stock:"in",about:"Sony's flagship noise-cancelling headphones, known for plush comfort and industry-leading sound isolation."},
+  {id:12,name:"Alpha 7 IV",brand:"Sony",category:"Cameras",price:2499,spec:"33MP Full-Frame / 4K60",stock:"in",about:"A full-frame mirrorless camera built for photographers and filmmakers who need speed, resolution, and reliable autofocus."},
+  {id:13,name:"PlayStation 5 Pro",brand:"Sony",category:"Gaming",price:699,spec:"2TB SSD / 4K120 / Ray Tracing",stock:"in",about:"A high-performance console with faster ray tracing and a larger SSD for next-generation gaming."},
+  {id:14,name:"Bravia 9 55\"",brand:"Sony",category:"TVs",price:2199,spec:"Mini LED / 4K / Acoustic Multi-Audio",stock:"low",about:"A premium Mini LED TV tuned by Sony's picture engine, with multi-directional sound built into the panel."},
+  {id:15,name:"Pixel 9 Pro",brand:"Google",category:"Phones",price:999,spec:"6.3\" OLED / Tensor G4 / 256GB",stock:"in",about:"Google's flagship phone, built around the Tensor chip with AI-powered photo and writing tools."},
+  {id:16,name:"Pixel Buds Pro 2",brand:"Google",category:"Audio",price:229,spec:"ANC / Tensor A1 / 8hr",stock:"in",about:"Compact earbuds with strong noise cancellation and tight integration with Google's Assistant features."},
+  {id:17,name:"Pixel Tablet",brand:"Google",category:"Tablets",price:499,spec:"11\" LCD / Tensor G2 / 128GB",stock:"out",about:"An Android tablet that doubles as a smart display when docked at home."},
+  {id:18,name:"LG OLED evo C5 65\"",brand:"LG",category:"TVs",price:2399,spec:"4K OLED / 144Hz / a9 AI Processor",stock:"in",about:"A self-lit OLED television with perfect blacks and near-instant response, great for movies and gaming alike."},
+  {id:19,name:"LG UltraGear 27\" Monitor",brand:"LG",category:"Gaming",price:449,spec:"QHD / 240Hz / 1ms",stock:"in",about:"A high-refresh gaming monitor built for competitive play, with sharp QHD resolution and near-zero blur."},
+  {id:20,name:"LG Tone Free T90",brand:"LG",category:"Audio",price:199,spec:"ANC / Dolby Atmos / UVnano",stock:"in",about:"Noise-cancelling earbuds with a self-cleaning UV case and rich Dolby Atmos sound."},
+  {id:21,name:"XPS 14",brand:"Dell",category:"Laptops",price:1699,spec:"Core Ultra 7 / 16GB / 1TB SSD",stock:"in",about:"Dell's flagship ultraportable laptop, machined from aluminum with a bright display and long battery life."},
+  {id:22,name:"Alienware 16X Aurora",brand:"Dell",category:"Gaming",price:2299,spec:"RTX 4070 / Core Ultra 9 / 32GB",stock:"in",about:"A gaming laptop built for serious frame rates, pairing a discrete GPU with a high-refresh display."},
+  {id:23,name:"Surface Pro 11",brand:"Microsoft",category:"Tablets",price:999,spec:"13\" / Snapdragon X Elite / 256GB",stock:"in",about:"A 2-in-1 tablet that runs full Windows, with a detachable keyboard and all-day battery life."},
+  {id:24,name:"Surface Laptop 7",brand:"Microsoft",category:"Laptops",price:1299,spec:"13.8\" / Snapdragon X Plus / 512GB",stock:"in",about:"A slim Windows laptop with an efficient ARM chip, built for long battery life and quiet performance."},
+  {id:25,name:"Xbox Series X",brand:"Microsoft",category:"Gaming",price:499,spec:"1TB SSD / 4K120 / Quick Resume",stock:"in",about:"Microsoft's most powerful console, built for 4K gaming and fast load times."},
+  {id:26,name:"QuietComfort Ultra",brand:"Bose",category:"Audio",price:429,spec:"ANC / Spatial Audio / 24hr",stock:"in",about:"Bose's top noise-cancelling headphones, praised for plush comfort and immersive spatial audio."},
+  {id:27,name:"SoundLink Max",brand:"Bose",category:"Audio",price:399,spec:"Portable / IP67 / 20hr",stock:"in",about:"A rugged portable speaker with deep bass, built to handle outdoor use and long days."},
+  {id:28,name:"Charge 6",brand:"JBL",category:"Audio",price:179,spec:"Portable / IP68 / 24hr",stock:"in",about:"A durable, waterproof Bluetooth speaker with punchy sound and a full day of battery life."},
+  {id:29,name:"Tour Pro 3",brand:"JBL",category:"Audio",price:249,spec:"ANC / Smart Case / 10hr",stock:"low",about:"Earbuds with a smart charging case that doubles as a display, plus strong noise cancellation."},
+  {id:30,name:"ThinkPad X1 Carbon",brand:"Lenovo",category:"Laptops",price:1749,spec:"Core Ultra 7 / 32GB / 1TB SSD",stock:"in",about:"A legendary business laptop known for its keyboard feel, durability, and long battery life."},
+  {id:31,name:"Legion Pro 7i",brand:"Lenovo",category:"Gaming",price:2599,spec:"RTX 4080 / Core i9 / 32GB",stock:"in",about:"A high-performance gaming laptop with a discrete GPU and a display tuned for fast motion."},
+  {id:32,name:"ROG Zephyrus G14",brand:"Asus",category:"Laptops",price:1899,spec:"RTX 4070 / Ryzen 9 / 32GB",stock:"in",about:"A compact gaming laptop that balances power and portability without sacrificing performance."},
+  {id:33,name:"ROG Ally X",brand:"Asus",category:"Gaming",price:799,spec:"7\" 120Hz / Z1 Extreme / 1TB",stock:"in",about:"A handheld gaming PC that runs full Windows games on the go, with a sharp 120Hz screen."},
+  {id:34,name:"EOS R6 Mark III",brand:"Canon",category:"Cameras",price:2499,spec:"24MP Full-Frame / 4K60 / IBIS",stock:"in",about:"Canon's versatile full-frame mirrorless camera, built for fast autofocus and reliable image stabilization."},
+  {id:35,name:"PowerShot V1",brand:"Canon",category:"Cameras",price:899,spec:"Vlogging / 1\" Sensor / 4K",stock:"low",about:"A compact vlogging camera with a large sensor, built for creators who film handheld."},
+  {id:36,name:"Switch 2",brand:"Nintendo",category:"Gaming",price:449,spec:"7.9\" LCD / 256GB / Dock included",stock:"in",about:"Nintendo's next-generation hybrid console, playable docked on the TV or handheld on the go."},
+  {id:37,name:"Spectre x360 14",brand:"HP",category:"Laptops",price:1549,spec:"Core Ultra 7 / 16GB / 1TB SSD",stock:"in",about:"A convertible Windows laptop with a gem-cut design and a bright OLED display."},
+  {id:38,name:"Omen 27qs Monitor",brand:"HP",category:"Gaming",price:549,spec:"QHD / 240Hz / IPS",stock:"in",about:"A high-refresh gaming monitor with sharp QHD resolution, built for competitive titles."},
+];
+
+let state = { query: "", category: "All", brands: [], sort: "featured", cart: {}, brandOpen: false };
+
+function iconSvg(category, size, color) {
+  const d = CATEGORY_ICON[category] || CATEGORY_ICON.Phones;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+}
+
+function renderHeroSub() {
+  document.getElementById("heroSub").textContent = `${PRODUCTS.length} products across ${CATEGORIES.length - 1} categories from the brands that actually ship. Browse, filter, and find the part you need.`;
+}
+
+function renderBrandRow() {
+  const row = document.getElementById("brandRow");
+  row.innerHTML = BRANDS.slice(0, 8).map(b =>
+    `<button class="chip ${state.brands.includes(b) ? 'active' : ''}" data-brand="${b}">${b}</button>`
+  ).join("");
+  row.querySelectorAll("[data-brand]").forEach(btn => btn.addEventListener("click", () => toggleBrand(btn.dataset.brand)));
+}
+
+function renderCatPills() {
+  const el = document.getElementById("catPills");
+  el.innerHTML = CATEGORIES.map(c => {
+    const active = state.category === c;
+    const icon = c !== "All" ? iconSvg(c, 14, active ? "#E2965E" : "#869187") : "";
+    return `<button class="cat-pill ${active ? 'active' : ''}" data-cat="${c}">${icon}${c}</button>`;
+  }).join("");
+  el.querySelectorAll("[data-cat]").forEach(btn => btn.addEventListener("click", () => { state.category = btn.dataset.cat; renderAll(); }));
+}
+
+function renderBrandMenu() {
+  const menu = document.getElementById("brandMenu");
+  menu.innerHTML = BRANDS.map(b =>
+    `<div class="brand-item" data-brand="${b}">${b} ${state.brands.includes(b) ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7CD9A5" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' : ''}</div>`
+  ).join("") + (state.brands.length ? `<div class="brand-clear" id="clearBrands">Clear all</div>` : "");
+  menu.querySelectorAll("[data-brand]").forEach(item => item.addEventListener("click", () => toggleBrand(item.dataset.brand)));
+  const clearBtn = document.getElementById("clearBrands");
+  if (clearBtn) clearBtn.addEventListener("click", () => { state.brands = []; renderAll(); });
+  document.getElementById("brandCountLabel").textContent = state.brands.length ? `(${state.brands.length})` : "";
+}
+
+function toggleBrand(b) {
+  state.brands = state.brands.includes(b) ? state.brands.filter(x => x !== b) : [...state.brands, b];
+  renderAll();
+}
+
+function renderActiveChips() {
+  const el = document.getElementById("activeChips");
+  let html = "";
+  if (state.query) html += `<span class="tag-chip">"${state.query}" <svg id="clearQuery" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#869187" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></span>`;
+  state.brands.forEach(b => {
+    html += `<span class="tag-chip" data-clear-brand="${b}">${b} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#869187" stroke-width="2" style="pointer-events:none;"><path d="M18 6L6 18M6 6l12 12"/></svg></span>`;
+  });
+  el.innerHTML = html;
+  const cq = document.getElementById("clearQuery");
+  if (cq) cq.parentElement.addEventListener("click", () => { state.query = ""; document.getElementById("searchInput").value = ""; renderAll(); });
+  el.querySelectorAll("[data-clear-brand]").forEach(chip => chip.addEventListener("click", () => toggleBrand(chip.dataset.clearBrand)));
+}
+
+function getFiltered() {
+  let list = PRODUCTS.filter(p => {
+    const q = state.query.toLowerCase();
+    const matchesQuery = !q || p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q);
+    const matchesCat = state.category === "All" || p.category === state.category;
+    const matchesBrand = state.brands.length === 0 || state.brands.includes(p.brand);
+    return matchesQuery && matchesCat && matchesBrand;
+  });
+  if (state.sort === "price-asc") list = [...list].sort((a,b) => a.price - b.price);
+  if (state.sort === "price-desc") list = [...list].sort((a,b) => b.price - a.price);
+  if (state.sort === "name") list = [...list].sort((a,b) => a.name.localeCompare(b.name));
+  return list;
+}
+
+function renderGrid() {
+  const list = getFiltered();
+  document.getElementById("resultCount").textContent = `${list.length} result${list.length !== 1 ? "s" : ""}`;
+  const grid = document.getElementById("grid");
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty" style="grid-column: 1/-1;">No products match those filters. Try clearing a brand or category.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(p => {
+    const inCart = state.cart[p.id];
+    const disabled = p.stock === "out";
+    return `
+    <div class="card">
+      <div class="pin"></div>
+      <div class="thumb">${iconSvg(p.category, 44, "#E2965E")}</div>
+      <div class="card-top">
+        <span class="brand-label">${p.brand}</span>
+        <span class="stock" style="color:${STOCK_COLOR[p.stock]}; border-color:${STOCK_COLOR[p.stock]};">${STOCK_LABEL[p.stock]}</span>
+      </div>
+      <div>
+        <h3 class="name display">${p.name}</h3>
+        <p class="about">${p.about}</p>
+        <p class="spec">${p.spec}</p>
+      </div>
+      <div class="card-bottom">
+        <span class="price">$${p.price.toLocaleString()}</span>
+        <button class="add-btn" data-add="${p.id}" ${disabled ? "disabled" : ""}>${inCart ? `Added (${inCart})` : "Add"}</button>
+      </div>
+    </div>`;
+  }).join("");
+  grid.querySelectorAll("[data-add]").forEach(btn => btn.addEventListener("click", () => addToCart(Number(btn.dataset.add))));
+}
+
+function addToCart(id) {
+  state.cart[id] = (state.cart[id] || 0) + 1;
+  document.getElementById("cartCount").textContent = Object.values(state.cart).reduce((a,b)=>a+b,0);
+  renderGrid();
+}
+
+function renderAll() {
+  renderCatPills();
+  renderBrandRow();
+  renderBrandMenu();
+  renderActiveChips();
+  renderGrid();
+}
+
+document.getElementById("searchInput").addEventListener("input", (e) => { state.query = e.target.value; renderAll(); });
+document.getElementById("sortSelect").addEventListener("change", (e) => { state.sort = e.target.value; renderGrid(); });
+document.getElementById("brandBtn").addEventListener("click", () => {
+  document.getElementById("brandMenu").classList.toggle("open");
+});
+document.addEventListener("click", (e) => {
+  const menu = document.getElementById("brandMenu");
+  const btn = document.getElementById("brandBtn");
+  if (menu.classList.contains("open") && !menu.contains(e.target) && !btn.contains(e.target)) menu.classList.remove("open");
+});
+
+renderHeroSub();
+renderAll();
+</script>
+</body>
+</html>
