@@ -15,6 +15,7 @@
     color: #e8e8f0;
   }
 
+  /* ============ SPLASH SCREEN ============ */
   #splash {
     position: fixed;
     inset: 0;
@@ -115,16 +116,6 @@
     text-transform: uppercase;
   }
 
-  #game-wrap {
-    position: fixed;
-    inset: 0;
-    display: none;
-    opacity: 0;
-    transition: opacity 0.6s ease;
-  }
-  #game-wrap.show { display: block; opacity: 1; }
-  #game-frame { width: 100%; height: 100%; border: none; display: block; }
-
   #watermark {
     position: fixed;
     bottom: 12px;
@@ -135,13 +126,13 @@
     text-transform: uppercase;
     z-index: 100;
     pointer-events: none;
-    font-family: -apple-system, sans-serif;
     display: none;
   }
 </style>
 </head>
 <body>
 
+<!-- Splash screen (visible first) -->
 <div id="splash">
   <div class="logo-ring"><span>N</span></div>
   <div class="owner-label">Owned &amp; Operated By</div>
@@ -151,31 +142,23 @@
   <div class="footer-note">© 2025 Nakul Sharma</div>
 </div>
 
-<div id="game-wrap">
-  <iframe id="game-frame" allowfullscreen></iframe>
-</div>
-
+<!-- Watermark shown during game -->
 <div id="watermark">© Nakul Sharma</div>
 
 <script>
-  // Your game file is now called game.html
-  var GAME_URL = "game.html";
+function enterGame() {
+  // Fade out splash
+  var splash = document.getElementById('splash');
+  splash.classList.add('fade-out');
 
-  function enterGame() {
-    var splash = document.getElementById('splash');
-    var wrap = document.getElementById('game-wrap');
-    var frame = document.getElementById('game-frame');
-    var watermark = document.getElementById('watermark');
+  setTimeout(function() {
+    splash.style.display = 'none';
+    document.getElementById('watermark').style.display = 'block';
 
-    frame.src = GAME_URL;
-    splash.classList.add('fade-out');
-
-    setTimeout(function() {
-      splash.style.display = 'none';
-      wrap.classList.add('show');
-      watermark.style.display = 'block';
-    }, 800);
-  }
+    // Redirect to your game file
+    window.location.href = 'game.html';
+  }, 800);
+}
 </script>
 
 </body>
